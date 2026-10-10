@@ -4,15 +4,16 @@
 
 | | |
 |---|---|
-| **Integrantes** | [NOMBRE COMPLETO INTEGRANTE 1] · [NOMBRE COMPLETO INTEGRANTE 2] |
+| **Autor** | Cristian López Cardona (trabajo individual) |
 | **Curso** | Inteligencia de Negocios · Grupo 01 · 2026-II |
 | **Docente** | Ramiro Grisales Montoya |
 | **Institución** | Institución Universitaria Pascual Bravo · Departamento de Sistemas Digitales |
+| **Repositorio** | <https://github.com/Cat0428/solarbi-lopez-cardona> |
 
 ## Descripción
 
 Trabajo de consulta y práctica guiada del proyecto de aula **SolarBI Pascual**. Con un enfoque de
-**monitoreo operativo** (potencia en el tiempo y detección de fallas), construimos un flujo pequeño
+**monitoreo operativo** (potencia en el tiempo y detección de fallas), se construyó un flujo pequeño
 pero completo sobre la arquitectura medallón:
 
 ```
@@ -41,7 +42,7 @@ simulador.py ──► data/bronze/telemetria.csv      (Bronze: crudo, nunca se 
 ├── data/silver/              lectura_5min.csv, rechazos.csv, reporte_calidad.json
 ├── etl/                      simulador.py, run_etl.py
 ├── sql/                      01_ddl, 02_roles, 03_carga_gold, 04_verificacion, 05-06 alerta
-├── powerbi/                  proyecto .pbip / .pbix + medidas DAX (README)
+├── powerbi/                  solarbi.pbix, proyecto solarbi.pbip (texto, apto para Git) + guía DAX
 └── grafana/                  dashboard.json + provisioning (data source, dashboard, alerta)
 ```
 
@@ -51,8 +52,8 @@ Requisitos: Python 3.10+, Docker Desktop, Power BI Desktop (Windows).
 
 ```bash
 # 1. Clonar y configurar credenciales
-git clone https://github.com/[USUARIO]/solarbi-[apellido1]-[apellido2].git
-cd solarbi-[apellido1]-[apellido2]
+git clone https://github.com/Cat0428/solarbi-lopez-cardona.git
+cd solarbi-lopez-cardona
 cp .env.example .env            # Windows: copy .env.example .env   → editar contraseñas
 
 # 2. Levantar PostgreSQL y Grafana
@@ -83,7 +84,7 @@ Resultado esperado (Bronze con semilla 2026):
 | `silver.lectura_5min` | 831 filas |
 | `dwh.fact_energia_dia` | 3 filas · 79,033 kWh |
 
-6. **Grafana:** <http://localhost:3000> (o el puerto de `GRAFANA_PORT` en `.env`) (usuario y clave del `.env`). El data source, el dashboard
+6. **Grafana:** <http://localhost:3000> (o el puerto de `GRAFANA_PORT` en `.env`), con el usuario y la clave del `.env`. El data source, el dashboard
    *SolarBI Pascual · Monitoreo operativo* (carpeta SolarBI) y la regla de alerta se crean solos.
    Rango de tiempo: 5 al 7 de octubre de 2026. Para probar la alerta: `sql/06_prueba_alerta.sql`
    (después, borrar la lectura de prueba con el `DELETE` que está al final de ese archivo).
@@ -108,7 +109,7 @@ registrada en `dwh.etl_ejecucion` (linaje).
 Linux/macOS, `crontab -e` — todos los días a la medianoche:
 
 ```cron
-0 0 * * * cd /ruta/solarbi-[apellido1]-[apellido2] && .venv/bin/python etl/run_etl.py >> logs/etl.log 2>&1
+0 0 * * * cd /ruta/solarbi-lopez-cardona && .venv/bin/python etl/run_etl.py >> logs/etl.log 2>&1
 ```
 
 Windows, Programador de tareas (una línea en `cmd`):
@@ -117,14 +118,24 @@ Windows, Programador de tareas (una línea en `cmd`):
 schtasks /Create /TN "SolarBI ETL" /SC DAILY /ST 00:00 /TR "C:\ruta\solarbi\.venv\Scripts\python.exe C:\ruta\solarbi\etl\run_etl.py"
 ```
 
+## Problemas frecuentes (Windows)
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| `Bind for 0.0.0.0:3000 failed: port is already allocated` | Otro programa usa el puerto de Grafana | En `.env`: `GRAFANA_PORT=3001` y `docker compose up -d --force-recreate grafana` |
+| `Bind for 0.0.0.0:5432 failed` o el ETL no conecta | Hay un PostgreSQL instalado en Windows en el 5432 | En `.env`: `PGPORT=55432` y `docker compose up -d --force-recreate postgres` |
+| `UnicodeDecodeError` al conectar | Error de conexión de PostgreSQL con mensaje en español | Revisar puerto y contraseña (ver filas anteriores) |
+| Power BI: *Host desconocido* | No resuelve `localhost` | Usar `127.0.0.1:PUERTO` como servidor |
+| Power BI: *encrypted connection* | El contenedor no tiene SSL | Desmarcar **Use encrypted connection** |
+
+En esta práctica se usó Grafana en el puerto **3001** y PostgreSQL en el **55432**.
+
 ## Seguridad
 
 - Ninguna contraseña está en el repositorio: todo sale de `.env` (excluido en `.gitignore`).
 - Grafana y Power BI se conectan con `bi_lector`, un rol de **solo lectura**. Solo el ETL escribe.
 
-## Quién hizo qué
+## Autoría
 
-| Integrante | Aportes |
-|---|---|
-| [Integrante 1] | [p. ej. simulador y reglas de calidad, carga en PostgreSQL, Bloques 1 y 3 de la consulta] |
-| [Integrante 2] | [p. ej. dashboard de Grafana y alerta, informe de Power BI, Bloques 2, 4 y 5] |
+Trabajo desarrollado de forma individual por **Cristian López Cardona**: consulta (Parte A),
+flujo ETL y carga en PostgreSQL, dashboard y alerta en Grafana, informe en Power BI y repositorio.
