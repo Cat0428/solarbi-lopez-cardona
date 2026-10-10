@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "solarbi"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "d33078c7-2e1b-47fc-801d-e85c1a07872c"
+  }
+}
