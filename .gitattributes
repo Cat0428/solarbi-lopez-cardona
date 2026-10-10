@@ -1,0 +1,8 @@
+# Los scripts de shell deben conservar finales de línea LF aunque se
+# clone en Windows; si no, el contenedor de PostgreSQL no los ejecuta.
+*.sh   text eol=lf
+*.sql  text eol=lf
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.pbix binary
+*.pdf  binary

@@ -1,0 +1,29 @@
+# Credenciales: nunca al repositorio
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Power BI: archivos locales del proyecto .pbip
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+*.pbix.bak
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Documento de trabajo (en docs/ solo va el PDF final)
+docs/*.docx
+docs/~$*
+
+# Bitácoras del ETL programado
+logs/*.log
