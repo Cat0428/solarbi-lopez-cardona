@@ -1,0 +1,12 @@
+# Carga grafana/dashboard.json en la carpeta "SolarBI" al arrancar Grafana.
+apiVersion: 1
+
+providers:
+  - name: solarbi
+    folder: SolarBI
+    type: file
+    disableDeletion: false
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

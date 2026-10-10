@@ -1,0 +1,22 @@
+# Data source de Grafana creado automáticamente al arrancar el contenedor.
+# Usa el rol de SOLO LECTURA bi_lector; la contraseña llega por variable de
+# entorno desde .env (nunca se escribe en el repositorio).
+apiVersion: 1
+
+datasources:
+  - name: SolarBI PostgreSQL
+    uid: solarbi-postgres
+    type: grafana-postgresql-datasource
+    access: proxy
+    url: postgres:5432
+    user: bi_lector
+    isDefault: true
+    editable: true
+    jsonData:
+      database: ${POSTGRES_DB}
+      sslmode: disable
+      postgresVersion: 1600
+      timescaledb: false
+      timeInterval: 5m
+    secureJsonData:
+      password: ${BI_LECTOR_PASSWORD}

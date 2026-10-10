@@ -1,0 +1,57 @@
+# Regla de alerta: potencia cero en horario solar (9:00 a 15:00, hora de Colombia).
+# Consulta documentada en sql/05_alerta_potencia_cero.sql.
+# Nota: Grafana no interpola variables de entorno en este archivo, así que las
+# macros ($__timeFilter) y plantillas ($labels, $values) llevan un solo $.
+# Ventana de 24 h (relativeTimeRange) para poder demostrarla con datos
+# históricos; en operación real se reduce a 900 s (15 min).
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: planta-solar
+    folder: SolarBI
+    interval: 1m
+    rules:
+      - uid: solarbi-potencia-cero
+        title: Potencia cero en horario solar (9:00-15:00)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: solarbi-postgres
+            model:
+              refId: A
+              editorMode: code
+              rawQuery: true
+              format: table
+              rawSql: >-
+                SELECT d.nombre AS dispositivo, count(l.ts) AS lecturas_potencia_cero
+                FROM dwh.dim_dispositivo d
+                LEFT JOIN silver.lectura_5min l
+                  ON l.dispositivo_id = d.dispositivo_id
+                 AND $__timeFilter(l.ts)
+                 AND l.p_ac_kw <= 0
+                 AND (l.ts AT TIME ZONE 'America/Bogota')::time BETWEEN '09:00' AND '15:00'
+                GROUP BY d.nombre
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        labels:
+          severidad: critica
+          sitio: sede-robledo
+        annotations:
+          summary: "Inversor {{ $labels.dispositivo }} con potencia 0 en horario solar"
+          description: "Se registraron {{ $values.A }} lecturas con potencia cero entre las 9:00 y las 15:00. Revisar breaker, string o comunicación del inversor."
