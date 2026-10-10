@@ -9,7 +9,19 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 1
 
-annotation PBI_ProTooling = ["DevMode"]
+annotation PBI_QueryOrder = ["dwh dim_dispositivo","dwh dim_fecha","dwh fact_energia_dia"]
+
+annotation PBI_ProTooling = ["MCP-PBIModeling","DevMode"]
+
+ref table dim_dispositivo
+ref table dim_fecha
+ref table DateTableTemplate_2cabbc9c-5e95-4c1e-a27e-83d4e6c6d4bf
+ref table LocalDateTable_e88cfc29-a782-4f9c-8eca-a180a5a70225
+ref table fact_energia_dia
+ref table LocalDateTable_cda83596-1b49-4cf7-93ad-de93aca63e46
+ref table _Medidas
+
+ref role 'Responsable Robledo'
 
 ref cultureInfo en-US
 

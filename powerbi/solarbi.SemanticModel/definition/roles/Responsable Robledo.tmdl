@@ -1,0 +1,8 @@
+/// Ejemplo de RLS (pregunta G4): el responsable solo ve los dispositivos de su sitio.
+role 'Responsable Robledo'
+	modelPermission: read
+
+	tablePermission dim_dispositivo = [sitio] = "Sede Robledo"
+
+	annotation PBI_Id = 6cf521a71a5d40e0bab0a8dd3026eb49
+

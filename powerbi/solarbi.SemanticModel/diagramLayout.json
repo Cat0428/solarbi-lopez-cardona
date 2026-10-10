@@ -7,7 +7,60 @@
         "x": 0,
         "y": 0
       },
-      "nodes": [],
+      "nodes": [
+        {
+          "location": {
+            "x": 699.38305001469359,
+            "y": 0
+          },
+          "nodeIndex": "dim_dispositivo",
+          "nodeLineageTag": "f06b6778-dc8e-403e-bb8a-ebf881131c0c",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 28
+          },
+          "nodeIndex": "dim_fecha",
+          "nodeLineageTag": "4a9c468b-efbf-4520-8cfa-81b80736f06b",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 346.20156119318517,
+            "y": 0
+          },
+          "nodeIndex": "fact_energia_dia",
+          "nodeLineageTag": "d9674a01-2ae7-454a-a7d6-456d1f8e7935",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 791.38305001469359,
+            "y": 276
+          },
+          "nodeIndex": "_Medidas",
+          "nodeLineageTag": "9281e745-886b-4866-8485-21fd7d5debe0",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
       "name": "All tables",
       "zoomValue": 100,
       "pinKeyFieldsToTop": false,

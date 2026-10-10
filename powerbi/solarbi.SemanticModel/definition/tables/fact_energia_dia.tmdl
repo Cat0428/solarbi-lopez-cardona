@@ -1,0 +1,127 @@
+table fact_energia_dia
+	lineageTag: d9674a01-2ae7-454a-a7d6-456d1f8e7935
+
+	column fecha_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a0f9bbc3-b543-459c-b34f-02804661fef1
+		summarizeBy: none
+		sourceColumn: fecha_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column dispositivo_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e4756313-23d2-45a8-83e3-ee97c582dd33
+		summarizeBy: none
+		sourceColumn: dispositivo_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column energia_kwh
+		dataType: double
+		lineageTag: 7c23fec9-3989-4f90-a5fc-7ba8bd9440d0
+		summarizeBy: sum
+		sourceColumn: energia_kwh
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column p_max_kw
+		dataType: double
+		lineageTag: 42919c0e-8e6f-4bac-b90a-6c7547b98233
+		summarizeBy: max
+		sourceColumn: p_max_kw
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column irradiacion_kwh_m2
+		dataType: double
+		lineageTag: 124a1213-1404-4205-87dc-26c95124b6f8
+		summarizeBy: sum
+		sourceColumn: irradiacion_kwh_m2
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column yield_kwh_kwp
+		dataType: double
+		lineageTag: 63a0bd25-e7ff-49f0-8ea4-2dc026e0c318
+		summarizeBy: sum
+		sourceColumn: yield_kwh_kwp
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column performance_ratio
+		dataType: double
+		lineageTag: a45cb5b1-82a8-4c34-a901-575d81d9275b
+		summarizeBy: none
+		sourceColumn: performance_ratio
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column n_lecturas_validas
+		dataType: int64
+		formatString: 0
+		lineageTag: 1f551d3a-96a0-4ecf-904a-d9880570d5c6
+		summarizeBy: sum
+		sourceColumn: n_lecturas_validas
+
+		annotation SummarizationSetBy = Automatic
+
+	column n_lecturas_esperadas
+		dataType: int64
+		formatString: 0
+		lineageTag: 5ec3db1d-df26-4f6b-ae30-8f52dac2f3a6
+		summarizeBy: sum
+		sourceColumn: n_lecturas_esperadas
+
+		annotation SummarizationSetBy = Automatic
+
+	column pct_datos_validos
+		dataType: double
+		lineageTag: 5ff1cdf6-3d8a-44c4-b481-a2e3d0864c3e
+		summarizeBy: none
+		sourceColumn: pct_datos_validos
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column actualizado_en
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: ed8db441-e105-4dc7-b3db-8e4508161a37
+		summarizeBy: none
+		sourceColumn: actualizado_en
+
+		variation Variation
+			isDefault
+			relationship: b165b6dc-bd34-41c3-a56b-b48144430141
+			defaultHierarchy: LocalDateTable_cda83596-1b49-4cf7-93ad-de93aca63e46.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'dwh fact_energia_dia' = m
+		mode: import
+		source =
+				let
+				  Source = PostgreSQL.Database("127.0.0.1:55432", "solarbi"),
+				  #"Navigation 1" = Source{[Schema = "dwh", Item = "fact_energia_dia"]}[Data]
+				in
+				  #"Navigation 1"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,18 @@
+relationship b99fbf62-ea96-45dc-af31-e3f692c21ab3
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_fecha.fecha
+	toColumn: LocalDateTable_e88cfc29-a782-4f9c-8eca-a180a5a70225.Date
+
+relationship b165b6dc-bd34-41c3-a56b-b48144430141
+	joinOnDateBehavior: datePartOnly
+	fromColumn: fact_energia_dia.actualizado_en
+	toColumn: LocalDateTable_cda83596-1b49-4cf7-93ad-de93aca63e46.Date
+
+relationship AutoDetected_0597083e-86b1-448f-a0d9-c5b8309e7d8c
+	fromColumn: fact_energia_dia.dispositivo_key
+	toColumn: dim_dispositivo.dispositivo_key
+
+relationship fact_fecha
+	fromColumn: fact_energia_dia.fecha_key
+	toColumn: dim_fecha.fecha_key
+

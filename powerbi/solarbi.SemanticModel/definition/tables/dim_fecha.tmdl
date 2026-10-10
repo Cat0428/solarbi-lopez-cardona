@@ -1,0 +1,94 @@
+table dim_fecha
+	lineageTag: 4a9c468b-efbf-4520-8cfa-81b80736f06b
+	dataCategory: Time
+
+	column fecha_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 56be4e84-5f82-409c-ad00-a73ef21f3a64
+		summarizeBy: none
+		sourceColumn: fecha_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column fecha
+		dataType: dateTime
+		isUnique
+		formatString: dd/mm/yyyy
+		lineageTag: ede9557b-0219-4cc8-86f2-a0dd5db7feca
+		summarizeBy: none
+		sourceColumn: fecha
+
+		variation Variation
+			isDefault
+			relationship: b99fbf62-ea96-45dc-af31-e3f692c21ab3
+			defaultHierarchy: LocalDateTable_e88cfc29-a782-4f9c-8eca-a180a5a70225.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column anio
+		dataType: int64
+		formatString: 0
+		lineageTag: fa76cc5c-a038-432e-ad7a-2063926d3762
+		summarizeBy: sum
+		sourceColumn: anio
+
+		annotation SummarizationSetBy = Automatic
+
+	column mes
+		dataType: int64
+		formatString: 0
+		lineageTag: 4096f3cb-0d35-4f2a-8eb8-8814db4aceb8
+		summarizeBy: sum
+		sourceColumn: mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column nombre_mes
+		dataType: string
+		lineageTag: 8c2589e0-7154-4fdc-beef-d66d915be027
+		summarizeBy: none
+		sourceColumn: nombre_mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column dia
+		dataType: int64
+		formatString: 0
+		lineageTag: 893b2385-00d2-45b6-ab74-0331f627e601
+		summarizeBy: sum
+		sourceColumn: dia
+
+		annotation SummarizationSetBy = Automatic
+
+	column dia_semana
+		dataType: int64
+		formatString: 0
+		lineageTag: f7577711-3b27-4ad8-9c6f-3cb4fa14fff8
+		summarizeBy: sum
+		sourceColumn: dia_semana
+
+		annotation SummarizationSetBy = Automatic
+
+	column nombre_dia
+		dataType: string
+		lineageTag: 380fd1cb-6fcf-4b6a-975f-b0d8c54f381c
+		summarizeBy: none
+		sourceColumn: nombre_dia
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'dwh dim_fecha' = m
+		mode: import
+		source =
+				let
+				  Source = PostgreSQL.Database("127.0.0.1:55432", "solarbi"),
+				  #"Navigation 1" = Source{[Schema = "dwh", Item = "dim_fecha"]}[Data]
+				in
+				  #"Navigation 1"
+
+	annotation PBI_ResultType = Table
+

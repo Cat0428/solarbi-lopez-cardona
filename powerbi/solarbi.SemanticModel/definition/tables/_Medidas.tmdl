@@ -1,0 +1,50 @@
+/// Tabla contenedora de las medidas DAX de SolarBI.
+table _Medidas
+	lineageTag: 9281e745-886b-4866-8485-21fd7d5debe0
+
+	/// Suma de la energía diaria (potencia × 5/60 h de las lecturas válidas).
+	measure 'Energía Total (kWh)' = SUM ( fact_energia_dia[energia_kwh] )
+		formatString: #,0.00
+		lineageTag: 477ecdd7-7f33-4180-9ce6-bf1f4ba0fd70
+
+	/// Lecturas válidas ÷ lecturas esperadas (288 por día). Promedio ponderado.
+	measure '% Datos Válidos' =
+			DIVIDE (
+			    SUM ( fact_energia_dia[n_lecturas_validas] ),
+			    SUM ( fact_energia_dia[n_lecturas_esperadas] )
+			)
+		formatString: 0.0%
+		lineageTag: 5bd9a331-2d5c-46b6-aa57-5b1cadafb288
+
+	measure 'Energía Promedio Diaria (kWh)' = AVERAGEX ( VALUES ( dim_fecha[fecha] ), [Energía Total (kWh)] )
+		formatString: #,0.00
+		lineageTag: 77683159-b6b3-4135-a357-f7204de0ab4d
+
+	/// Energía por kWp instalado en el periodo.
+	measure 'Yield (kWh/kWp)' = SUM ( fact_energia_dia[yield_kwh_kwp] )
+		formatString: #,0.00
+		lineageTag: e586c8aa-a92a-47e5-884e-6ece97f460ef
+
+	/// Yield ÷ irradiación (kWh/m² ÷ 1 kW/m²).
+	measure 'Performance Ratio' =
+			DIVIDE (
+			    SUM ( fact_energia_dia[yield_kwh_kwp] ),
+			    SUM ( fact_energia_dia[irradiacion_kwh_m2] )
+			)
+		formatString: 0.0%
+		lineageTag: cb97c804-ef27-4fdc-8b86-5174d8166f6d
+
+	measure 'Potencia Máxima (kW)' = MAX ( fact_energia_dia[p_max_kw] )
+		formatString: #,0.00
+		lineageTag: 565973c3-9ae0-4f0a-921f-9f35dcdac62e
+
+	column Columna
+		isHidden
+		lineageTag: 09a16a57-d41d-44b4-af5e-fdf4d4469276
+		isNameInferred
+		sourceColumn: [Columna]
+
+	partition _Medidas = calculated
+		mode: import
+		source = ROW("Columna", BLANK())
+
