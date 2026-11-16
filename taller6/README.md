@@ -5,7 +5,7 @@
 
 | | |
 |---|---|
-| **Autor** | Cristian David López Cardona |
+| **Autores** | Cristian David López Cardona · Sebastian Pineda |
 | **Curso** | Inteligencia de Negocios · Grupo 01 · 2026-II · Docente Ramiro Grisales Montoya |
 | **Institución** | Institución Universitaria Pascual Bravo · Departamento de Sistemas Digitales |
 | **Repositorio** | <https://github.com/Cat0428/solarbi-lopez-cardona> (carpeta `taller6/`) |
