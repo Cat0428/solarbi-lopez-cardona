@@ -1,0 +1,93 @@
+# 2026-11-15 21:19:51 (hora de Colombia)
+PS> kubectl describe cronjob simulador -n $NS
+Name:                          simulador
+Namespace:                     microrred
+Labels:                        app=simulador
+                               app.kubernetes.io/part-of=microrred-bi
+Annotations:                   <none>
+Schedule:                      * * * * *
+Concurrency Policy:            Forbid
+Suspend:                       False
+Time Zone:                     <unset>
+Successful Job History Limit:  3
+Failed Job History Limit:      3
+Starting Deadline Seconds:     50s
+Selector:                      <unset>
+Parallelism:                   <unset>
+Completions:                   <unset>
+Active Deadline Seconds:       50s
+Pod Template:
+  Labels:  app=simulador
+  Containers:
+   simulador:
+    Image:      microrred-simulador:1.0.0
+    Port:       <none>
+    Host Port:  <none>
+    Limits:
+      cpu:     250m
+      memory:  128Mi
+    Requests:
+      cpu:     50m
+      memory:  64Mi
+    Environment Variables from:
+      microrred-credenciales  Secret     Optional: false
+      microrred-parametros    ConfigMap  Optional: false
+    Environment:
+      PGHOST:        postgres
+      PGPORT:        5432
+    Mounts:          <none>
+  Volumes:           <none>
+  Node-Selectors:    <none>
+  Tolerations:       <none>
+Last Schedule Time:  Sun, 15 Nov 2026 21:19:00 -0500
+Active Jobs:         <none>
+Events:
+  Type    Reason            Age                   From                Message
+  ----    ------            ----                  ----                -------
+  Normal  SuccessfulCreate  59m                   cronjob-controller  Created job simulador-29913200
+  Normal  SawCompletedJob   59m                   cronjob-controller  Saw completed job: simulador-29913200, condition: Failed
+  Normal  SuccessfulCreate  58m                   cronjob-controller  Created job simulador-29913201
+  Normal  SawCompletedJob   58m                   cronjob-controller  Saw completed job: simulador-29913201, condition: Failed
+  Normal  SuccessfulCreate  57m                   cronjob-controller  Created job simulador-29913202
+  Normal  SawCompletedJob   57m                   cronjob-controller  Saw completed job: simulador-29913202, condition: Complete
+  Normal  SuccessfulCreate  56m                   cronjob-controller  Created job simulador-29913203
+  Normal  SawCompletedJob   56m                   cronjob-controller  Saw completed job: simulador-29913203, condition: Complete
+  Normal  SuccessfulCreate  55m                   cronjob-controller  Created job simulador-29913204
+  Normal  SawCompletedJob   55m                   cronjob-controller  Saw completed job: simulador-29913204, condition: Complete
+  Normal  SuccessfulCreate  54m                   cronjob-controller  Created job simulador-29913205
+  Normal  SawCompletedJob   54m                   cronjob-controller  Saw completed job: simulador-29913205, condition: Complete
+  Normal  SuccessfulDelete  54m                   cronjob-controller  Deleted job simulador-29913202
+  Normal  SuccessfulCreate  53m                   cronjob-controller  Created job simulador-29913206
+  Normal  SuccessfulDelete  53m                   cronjob-controller  Deleted job simulador-29913203
+  Normal  SawCompletedJob   53m                   cronjob-controller  Saw completed job: simulador-29913206, condition: Complete
+  Normal  SuccessfulCreate  52m                   cronjob-controller  Created job simulador-29913207
+  Normal  SawCompletedJob   52m                   cronjob-controller  Saw completed job: simulador-29913207, condition: Complete
+  Normal  SuccessfulDelete  52m                   cronjob-controller  Deleted job simulador-29913204
+  Normal  SuccessfulCreate  51m                   cronjob-controller  Created job simulador-29913208
+  Normal  SuccessfulDelete  51m                   cronjob-controller  Deleted job simulador-29913205
+  Normal  SawCompletedJob   51m                   cronjob-controller  Saw completed job: simulador-29913208, condition: Complete
+  Normal  SuccessfulDelete  50m                   cronjob-controller  Deleted job simulador-29913206
+  Normal  SawCompletedJob   50m                   cronjob-controller  (combined from similar events): Saw completed job: simulador-29913209, condition: Complete
+  Normal  SuccessfulDelete  49m                   cronjob-controller  Deleted job simulador-29913207
+  Normal  SuccessfulCreate  4m51s (x47 over 50m)  cronjob-controller  (combined from similar events): Created job simulador-29913255
+
+PS> kubectl get jobs -n $NS --sort-by=.metadata.creationTimestamp
+NAME                 STATUS     COMPLETIONS   DURATION   AGE
+etl-historico        Complete   1/1           5m2s       60m
+simulador-29913200   Failed     0/1           59m        59m
+simulador-29913201   Failed     0/1           58m        58m
+simulador-29913257   Complete   1/1           7s         2m51s
+simulador-29913258   Complete   1/1           7s         111s
+simulador-29913259   Complete   1/1           8s         51s
+
+PS> kubectl logs "$ultimoSim" -n $NS
+ANOMALÍA: inversor 2 con SOC 12.0 % en 1 minuto(s)
+2026-11-16 02:19 UTC · minutos 02:19–02:19 UTC · 2 filas nuevas · 0 antiguas borradas
+
+PS> Psql "SELECT inversor_id, count(*) AS minutos_simulados, max(ts) AS ultimo_minuto FROM silver.lectura_1min WHERE origen = 'simulador' GROUP BY 1 ORDER BY 1;"
+ inversor_id | minutos_simulados |     ultimo_minuto      
+-------------+-------------------+------------------------
+           1 |               235 | 2026-11-15 21:19:00-05
+           2 |               235 | 2026-11-15 21:19:00-05
+(2 rows)
+

@@ -1,0 +1,121 @@
+# 2026-11-15 21:19:50 (hora de Colombia)
+PS> kubectl describe job etl-historico -n $NS
+Name:             etl-historico
+Namespace:        microrred
+Selector:         batch.kubernetes.io/controller-uid=4afbc2f0-e7d7-4cdd-9a11-3e7ef03cbca8
+Labels:           app=etl
+                  app.kubernetes.io/part-of=microrred-bi
+Annotations:      <none>
+Parallelism:      1
+Completions:      1
+Completion Mode:  NonIndexed
+Suspend:          false
+Backoff Limit:    2
+Start Time:       Sun, 15 Nov 2026 20:19:31 -0500
+Completed At:     Sun, 15 Nov 2026 20:24:33 -0500
+Duration:         5m2s
+Pods Statuses:    0 Active (0 Ready) / 1 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=etl
+           batch.kubernetes.io/controller-uid=4afbc2f0-e7d7-4cdd-9a11-3e7ef03cbca8
+           batch.kubernetes.io/job-name=etl-historico
+           controller-uid=4afbc2f0-e7d7-4cdd-9a11-3e7ef03cbca8
+           job-name=etl-historico
+  Init Containers:
+   espera-postgres:
+    Image:      postgres:16.9
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      sh
+      -c
+      until pg_isready -h postgres -p 5432; do echo esperando postgres; sleep 3; done
+    Limits:
+      cpu:     100m
+      memory:  64Mi
+    Requests:
+      cpu:        10m
+      memory:     16Mi
+    Environment:  <none>
+    Mounts:       <none>
+  Containers:
+   etl:
+    Image:      microrred-etl:1.0.0
+    Port:       <none>
+    Host Port:  <none>
+    Limits:
+      cpu:     2
+      memory:  4Gi
+    Requests:
+      cpu:     500m
+      memory:  1536Mi
+    Environment Variables from:
+      microrred-credenciales  Secret     Optional: false
+      microrred-parametros    ConfigMap  Optional: false
+    Environment:
+      PGHOST:      postgres
+      PGPORT:      5432
+      BRONZE_DIR:  /bronze
+    Mounts:
+      /bronze from bronze (ro)
+  Volumes:
+   bronze:
+    Type:          HostPath (bare host directory volume)
+    Path:          /data/bronze
+    HostPathType:  Directory
+  Node-Selectors:  <none>
+  Tolerations:     <none>
+Events:
+  Type    Reason            Age   From            Message
+  ----    ------            ----  ----            -------
+  Normal  SuccessfulCreate  60m   job-controller  Created pod: etl-historico-srbmj
+  Normal  Completed         55m   job-controller  Job completed
+
+PS> kubectl logs job/etl-historico -n $NS -c etl --tail=60
+Bronze: /bronze/opencem-v1.0.0.sqlite
+SHA-256: 5fe1f213a4a6804cdfc75f6173f437772c918f45dc0f127eb7e8936c2c2d9fbb
+Ejecución 1
+Extracción: 2,989,759 mediciones, 25,178 contextos, 2,284,775 configuraciones, 2,283,350 contadores, 20,516 fallas en 126 s
+Reglas de calidad:
+  R0   Lecturas leídas de Bronze (analog_measurements)                          2,989,759 →   2,989,759  (0 afectadas)
+  R1   Duplicados exactos (fila repetida en la exportación)                     2,989,759 →   2,989,759  (0 afectadas)
+  R2   Corriente de batería con desborde uint16 → se decodifica con signo       2,989,759 →   2,989,759  (0 afectadas)
+  R3   Duplicados de llave (read_ts, inversor) después de corregir R2           2,989,759 →   2,989,759  (0 afectadas)
+  R4   Inversor fuera de {1,2} o marca de tiempo fuera de rango                 2,989,759 →   2,989,759  (0 afectadas)
+  R5   Campo obligatorio vacío (SOC, V, I, PV, carga o red)                     2,989,759 →   2,919,094  (70,665 afectadas)
+  R6   Fuera de rango físico (p. ej. V batería < 40 V, red 65 531 W = desbord   2,919,094 →   2,919,079  (15 afectadas)
+  R7   Hueco > 120 s antes de la siguiente lectura: se integra solo 12 s        2,989,759 →   2,989,759  (8,734 afectadas)
+  C0   Registros de contexto leídos de Bronze (context)                            25,178 →      25,178  (0 afectadas)
+  C1   Registros de contexto repetidos (mismo id y contenido)                      25,178 →      25,178  (0 afectadas)
+  C2   JSON mal formado (comillas sin escapar) → cuarentena silver.rechazo_co      25,178 →      25,178  (0 afectadas)
+  C3   Rutas de carpeta de usuario enmascaradas (/home/<usuario>) · Ley 1581       25,178 →      25,178  (0 afectadas)
+  C4   Intervalo imposible (fin antes del inicio)                                  25,178 →      25,178  (0 afectadas)
+  S1   settings: lectura de configuración incompleta (algún campo NULL)         2,284,775 →   2,218,888  (65,887 afectadas)
+/app/etl/run_etl.py:176: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`). Please use a specific unit instead.
+  .apply(lambda d: d - pd.Timedelta(days=1) if pd.notna(d) else pd.NaT))
+  S2   settings: días con configuración → versiones (cambia prioridad de sali         497 →           5  (0 afectadas)
+  S3   statistics: contador nulo, cruzado con el otro inversor o imposible      2,283,350 →   1,764,615  (518,735 afectadas)
+  F1   fault_history: 32 posiciones × lectura → fallas distintas (inversor, c      20,516 →      20,516  (0 afectadas)
+Carga Silver + Gold en 22 s
+Conciliación:
+  Lecturas válidas: limpieza → silver        origen= 2,919,079.000  destino= 2,919,079.000  dif=0.000
+  Lecturas únicas: limpieza → silver         origen= 2,989,759.000  destino= 2,989,759.000  dif=0.000
+  Energía solar kWh: lecturas → gold         origen=     2,164.911  destino=     2,164.909  dif=-0.002
+  Energía a la carga kWh: lecturas → gold    origen=     5,559.278  destino=     5,559.279  dif=0.001
+  Energía de la red kWh: lecturas → gold     origen=     4,400.352  destino=     4,400.358  dif=0.006
+  Registros de contexto: limpieza → gold     origen=    25,178.000  destino=    25,178.000  dif=0.000
+Filas cargadas:
+  gold.dim_fecha                    813
+  gold.fact_energia_hora         17,010
+  gold.fact_actividad            25,178
+  gold.fact_evento               24,458
+  silver.contexto                25,178
+  silver.lectura_1min           782,217
+ETL OK · ejecución 1
+
+PS> Psql 'SELECT ejecucion_id, inicio, fin, fin - inicio AS duracion, estado, archivo_bronze FROM ops.etl_ejecucion ORDER BY 1 DESC LIMIT 5;'
+ ejecucion_id |            inicio             |              fin              |    duracion     | estado |    archivo_bronze     
+--------------+-------------------------------+-------------------------------+-----------------+--------+-----------------------
+            1 | 2026-11-15 20:20:50.160457-05 | 2026-11-15 20:24:08.375438-05 | 00:03:18.214981 | ok     | opencem-v1.0.0.sqlite
+(1 row)
+

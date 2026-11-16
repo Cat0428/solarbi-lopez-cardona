@@ -1,0 +1,35 @@
+# 2026-11-15 21:19:49 (hora de Colombia)
+PS> docker images --format 'table {{.Repository}}:{{.Tag}}\t{{.Size}}' | Select-String -Pattern 'microrred|postgres|grafana|REPOSITORY'
+
+REPOSITORY:TAG                        SIZE
+microrred-simulador:1.0.0             205MB
+microrred-etl:1.0.0                   402MB
+postgres:16                           642MB
+grafana/grafana:12.2.0                975MB
+postgres:16.9                         643MB
+grafana/grafana:11.3.0                646MB
+postgres:16.4-alpine                  359MB
+
+PS> docker image history microrred-etl:1.0.0 --format '{{.Size}}\t{{.CreatedBy}}' |
+        ForEach-Object { $_.Substring(0, [Math]::Min(140, $_.Length)) } | Select-Object -First 12
+0B	ENTRYPOINT ["python" "-m" "etl.run_etl"]
+0B	USER 10001
+49.2kB	RUN /bin/sh -c useradd --uid 10001 --no-crea…
+61.4kB	COPY sql/ ./sql/ # buildkit
+69.6kB	COPY etl/ ./etl/ # buildkit
+169MB	RUN /bin/sh -c pip install -r requirements.t…
+12.3kB	COPY etl/requirements.txt . # buildkit
+8.19kB	WORKDIR /app
+0B	ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFER…
+0B	CMD ["python3"]
+16.4kB	RUN /bin/sh -c set -eux;  for src in idle3 p…
+45MB	RUN /bin/sh -c set -eux;   savedAptMark="$(a…
+
+PS> docker exec microrred-control-plane crictl images | Select-String -Pattern 'microrred|postgres|grafana|IMAGE'
+
+IMAGE                                           TAG                  IMAGE ID            SIZE
+docker.io/grafana/grafana                       12.2.0               1849e21404219       204MB
+docker.io/library/microrred-etl                 1.0.0                7d74a125c562e       92.7MB
+docker.io/library/microrred-simulador           1.0.0                8f95c6898c2f4       50.5MB
+docker.io/library/postgres                      16.9                 5d77af46c4cb9       160MB
+

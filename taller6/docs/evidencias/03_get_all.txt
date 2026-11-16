@@ -1,0 +1,64 @@
+# 2026-11-15 21:19:49 (hora de Colombia)
+PS> kubectl get all,pvc,configmap,secret -n $NS -o wide
+NAME                           READY   STATUS      RESTARTS   AGE     IP            NODE                      NOMINATED NODE   READINESS GATES
+pod/etl-historico-srbmj        0/1     Completed   0          60m     10.244.0.5    microrred-control-plane   <none>           <none>
+pod/grafana-584df66dc6-khwlx   1/1     Running     0          22m     10.244.0.54   microrred-control-plane   <none>           <none>
+pod/postgres-0                 1/1     Running     0          22m     10.244.0.52   microrred-control-plane   <none>           <none>
+pod/simulador-29913200-j96rk   0/1     Error       0          59m     10.244.0.10   microrred-control-plane   <none>           <none>
+pod/simulador-29913200-lssjv   0/1     Error       0          59m     10.244.0.9    microrred-control-plane   <none>           <none>
+pod/simulador-29913201-spknb   0/1     Error       0          58m     10.244.0.11   microrred-control-plane   <none>           <none>
+pod/simulador-29913201-vtflx   0/1     Error       0          58m     10.244.0.12   microrred-control-plane   <none>           <none>
+pod/simulador-29913257-vdtpz   0/1     Completed   0          2m49s   10.244.0.75   microrred-control-plane   <none>           <none>
+pod/simulador-29913258-lw2rj   0/1     Completed   0          109s    10.244.0.76   microrred-control-plane   <none>           <none>
+pod/simulador-29913259-dsfkq   0/1     Completed   0          49s     10.244.0.77   microrred-control-plane   <none>           <none>
+
+NAME                       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE   SELECTOR
+service/grafana            NodePort    10.96.240.17    <none>        3000:30300/TCP   60m   app=grafana
+service/postgres           ClusterIP   None            <none>        5432/TCP         60m   app=postgres
+service/postgres-externo   NodePort    10.96.141.235   <none>        5432:30432/TCP   60m   app=postgres
+
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                   SELECTOR
+deployment.apps/grafana   1/1     1            1           60m   grafana      grafana/grafana:12.2.0   app=grafana
+
+NAME                                 DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES                   SELECTOR
+replicaset.apps/grafana-56866696c5   0         0         0       60m   grafana      grafana/grafana:12.2.0   app=grafana,pod-template-hash=56866696c5
+replicaset.apps/grafana-584df66dc6   1         1         1       38m   grafana      grafana/grafana:12.2.0   app=grafana,pod-template-hash=584df66dc6
+
+NAME                        READY   AGE   CONTAINERS   IMAGES
+statefulset.apps/postgres   1/1     60m   postgres     postgres:16.9
+
+NAME                      SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE   CONTAINERS   IMAGES                      SELECTOR
+cronjob.batch/simulador   * * * * *   <none>     False     0        49s             60m   simulador    microrred-simulador:1.0.0   <none>
+
+NAME                           STATUS     COMPLETIONS   DURATION   AGE     CONTAINERS   IMAGES                      SELECTOR
+job.batch/etl-historico        Complete   1/1           5m2s       60m     etl          microrred-etl:1.0.0         batch.kubernetes.io/controller-uid=4afbc2f0-e7d7-4cdd-9a11-3e7ef03cbca8
+job.batch/simulador-29913200   Failed     0/1           59m        59m     simulador    microrred-simulador:1.0.0   batch.kubernetes.io/controller-uid=8803694f-8bd0-43e4-827b-eb616f4a5d5a
+job.batch/simulador-29913201   Failed     0/1           58m        58m     simulador    microrred-simulador:1.0.0   batch.kubernetes.io/controller-uid=b1857568-3ae4-4819-bd6a-7deb57ea1f40
+job.batch/simulador-29913257   Complete   1/1           7s         2m49s   simulador    microrred-simulador:1.0.0   batch.kubernetes.io/controller-uid=a0065cb0-6d16-4046-b8e9-b58762d9855f
+job.batch/simulador-29913258   Complete   1/1           7s         109s    simulador    microrred-simulador:1.0.0   batch.kubernetes.io/controller-uid=e64a7657-3956-4f74-89c2-8530a6056dfd
+job.batch/simulador-29913259   Complete   1/1           8s         49s     simulador    microrred-simulador:1.0.0   batch.kubernetes.io/controller-uid=3da356dd-6301-4aa8-8b75-948d64c0bb6a
+
+NAME                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE   VOLUMEMODE
+persistentvolumeclaim/data-postgres-0   Bound    pvc-635c2eda-231b-4fa8-8b5d-f00a4c2bb40c   5Gi        RWO            standard       <unset>                 60m   Filesystem
+
+NAME                                               DATA   AGE
+configmap/grafana-alertas-785b9k9ddg               1      60m
+configmap/grafana-dashboards-provider-km8t7bgt85   1      60m
+configmap/grafana-datasources-k24494c2d6           1      60m
+configmap/grafana-tableros-cmfd9fbk7c              1      60m
+configmap/grafana-tableros-gmkm265ddd              1      38m
+configmap/kube-root-ca.crt                         1      60m
+configmap/microrred-parametros                     16     60m
+configmap/postgres-init-9kbdhmm7ht                 1      60m
+
+NAME                            TYPE     DATA   AGE
+secret/microrred-credenciales   Opaque   6      60m
+
+PS> kubectl get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                       STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+pvc-635c2eda-231b-4fa8-8b5d-f00a4c2bb40c   5Gi        RWO            Delete           Bound    microrred/data-postgres-0   standard       <unset>                          60m
+
+PS> kubectl get storageclass
+NAME                 PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+standard (default)   rancher.io/local-path   Delete          WaitForFirstConsumer   false                  61m
+

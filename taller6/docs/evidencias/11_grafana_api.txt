@@ -1,0 +1,29 @@
+# 2026-11-15 21:19:53 (hora de Colombia)
+PS> Gf '/api/health' | Format-List
+
+
+database : ok
+version  : 12.2.0
+commit   : 92f1fba9b4b6700328e99e97328d6639df8ddc3d
+
+PS> Gf '/api/datasources' | Select-Object name, type, uid, url, isDefault | Format-Table -AutoSize
+
+name                 type                          uid          url           isDefault
+----                 ----                          ---          ---           ---------
+Microrred PostgreSQL grafana-postgresql-datasource microrred-pg postgres:5432      True
+
+PS> Gf '/api/search?type=dash-db' | Select-Object title, uid, folderTitle | Format-Table -AutoSize
+
+title                                   uid                 folderTitle
+-----                                   ---                 -----------
+Microrred OpenCEM · Monitoreo operativo microrred-operativo Microrred
+
+PS> (Gf '/api/prometheus/grafana/api/v1/rules').data.groups | ForEach-Object { $_.rules } |
+        Select-Object name, state, health, lastEvaluation | Format-Table -AutoSize -Wrap
+
+name                            state    health lastEvaluation      
+----                            -----    ------ --------------      
+Batería baja (SOC < 20 %)       firing   ok     2026-11-16T02:19:00Z
+Inversor sin datos (> 5 min)    inactive ok     2026-11-16T02:19:00Z
+Compra de red con batería llena inactive ok     2026-11-16T02:19:00Z
+

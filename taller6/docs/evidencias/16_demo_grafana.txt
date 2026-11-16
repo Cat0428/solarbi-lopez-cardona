@@ -1,0 +1,36 @@
+# 2026-11-15 21:20:02 (hora de Colombia)
+PS> kubectl get pods -l app=grafana -n $NS -o wide
+NAME                       READY   STATUS    RESTARTS   AGE   IP            NODE                      NOMINATED NODE   READINESS GATES
+grafana-584df66dc6-khwlx   1/1     Running   0          22m   10.244.0.54   microrred-control-plane   <none>           <none>
+
+PS> kubectl delete pod -l app=grafana -n $NS
+pod "grafana-584df66dc6-khwlx" deleted from microrred namespace
+
+PS> kubectl rollout status deployment/grafana -n $NS --timeout=240s
+Waiting for deployment "grafana" rollout to finish: 0 of 1 updated replicas are available...
+deployment "grafana" successfully rolled out
+
+PS> kubectl get pods -l app=grafana -n $NS -o wide
+NAME                       READY   STATUS    RESTARTS   AGE   IP            NODE                      NOMINATED NODE   READINESS GATES
+grafana-584df66dc6-28pxm   1/1     Running   0          13s   10.244.0.80   microrred-control-plane   <none>           <none>
+
+PS> EsperarGrafana; Gf '/api/search?type=dash-db' | Select-Object title, uid, folderTitle | Format-Table -AutoSize
+
+title                                   uid                 folderTitle
+-----                                   ---                 -----------
+Microrred OpenCEM · Monitoreo operativo microrred-operativo Microrred
+
+PS> Gf '/api/datasources' | Select-Object name, type, uid | Format-Table -AutoSize
+
+name                 type                          uid         
+----                 ----                          ---         
+Microrred PostgreSQL grafana-postgresql-datasource microrred-pg
+
+PS> Gf '/api/v1/provisioning/alert-rules' | Select-Object title, uid, for | Format-Table -AutoSize
+
+title                           uid                             for
+-----                           ---                             ---
+Batería baja (SOC < 20 %)       microrred-soc-bajo              2m 
+Inversor sin datos (> 5 min)    microrred-sin-datos             1m 
+Compra de red con batería llena microrred-red-con-bateria-llena 5m
+

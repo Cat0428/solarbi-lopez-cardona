@@ -1,0 +1,86 @@
+# 2026-11-15 21:20:27 (hora de Colombia)
+PS> kubectl get all,pvc -n $NS -o wide
+NAME                           READY   STATUS        RESTARTS   AGE     IP            NODE                      NOMINATED NODE   READINESS GATES
+pod/etl-historico-srbmj        0/1     Completed     0          60m     10.244.0.5    microrred-control-plane   <none>           <none>
+pod/grafana-584df66dc6-28pxm   1/1     Running       0          25s     10.244.0.80   microrred-control-plane   <none>           <none>
+pod/grafana-584df66dc6-b56pb   1/1     Terminating   0          12s     10.244.0.81   microrred-control-plane   <none>           <none>
+pod/postgres-0                 1/1     Running       0          32s     10.244.0.78   microrred-control-plane   <none>           <none>
+pod/simulador-29913200-j96rk   0/1     Error         0          60m     10.244.0.10   microrred-control-plane   <none>           <none>
+pod/simulador-29913200-lssjv   0/1     Error         0          60m     10.244.0.9    microrred-control-plane   <none>           <none>
+pod/simulador-29913201-spknb   0/1     Error         0          59m     10.244.0.11   microrred-control-plane   <none>           <none>
+pod/simulador-29913201-vtflx   0/1     Error         0          59m     10.244.0.12   microrred-control-plane   <none>           <none>
+pod/simulador-29913258-lw2rj   0/1     Completed     0          2m27s   10.244.0.76   microrred-control-plane   <none>           <none>
+pod/simulador-29913259-dsfkq   0/1     Completed     0          87s     10.244.0.77   microrred-control-plane   <none>           <none>
+pod/simulador-29913260-5zxdl   0/1     Completed     0          27s     10.244.0.79   microrred-control-plane   <none>           <none>
+
+NAME                       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE   SELECTOR
+service/grafana            NodePort    10.96.240.17    <none>        3000:30300/TCP   60m   app=grafana
+service/postgres           ClusterIP   None            <none>        5432/TCP         60m   app=postgres
+service/postgres-externo   NodePort    10.96.141.235   <none>        5432:30432/TCP   60m   app=postgres
+
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                   SELECTOR
+deployment.apps/grafana   1/1     1            1           60m   grafana      grafana/grafana:12.2.0   app=grafana
+
+NAME                                 DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES                   SELECTOR
+replicaset.apps/grafana-56866696c5   0         0         0       60m   grafana      grafana/grafana:12.2.0   app=grafana,pod-template-hash=56866696c5
+replicaset.apps/grafana-584df66dc6   1         1         1       38m   grafana      grafana/grafana:12.2.0   app=grafana,pod-template-hash=584df66dc6
+
+NAME                        READY   AGE   CONTAINERS   IMAGES
+statefulset.apps/postgres   1/1     60m   postgres     postgres:16.9
+
+NAME                      SCHEDULE    TIMEZONE   SUSPEND   ACTIVE   LAST SCHEDULE   AGE   CONTAINERS   IMAGES                      SELECTOR
+cronjob.batch/simulador   * * * * *   <none>     False     0        27s             60m   simulador    microrred-simulador:1.0.0   <none>
+
+NAME                           STATUS     COMPLETIONS   DURATION   AGE     CONTAINERS   IMAGES                      SELECTOR
+job.batch/etl-historico        Complete   1/1           5m2s       60m     etl          microrred-etl:1.0.0         batch.kubernetes.io/controller-uid=4afbc2f0-e7d7-4cdd-9a11-3e7ef03cbca8
+job.batch/simulador-29913200   Failed     0/1           60m        60m     simulador    microrred-simulador:1.0.0   batch.kubernetes.io/controller-uid=8803694f-8bd0-43e4-827b-eb616f4a5d5a
+job.batch/simulador-29913201   Failed     0/1           59m        59m     simulador    microrred-simulador:1.0.0   batch.kubernetes.io/controller-uid=b1857568-3ae4-4819-bd6a-7deb57ea1f40
+job.batch/simulador-29913258   Complete   1/1           7s         2m27s   simulador    microrred-simulador:1.0.0   batch.kubernetes.io/controller-uid=e64a7657-3956-4f74-89c2-8530a6056dfd
+job.batch/simulador-29913259   Complete   1/1           8s         87s     simulador    microrred-simulador:1.0.0   batch.kubernetes.io/controller-uid=3da356dd-6301-4aa8-8b75-948d64c0bb6a
+job.batch/simulador-29913260   Complete   1/1           6s         27s     simulador    microrred-simulador:1.0.0   batch.kubernetes.io/controller-uid=65a7c754-fd65-4097-b7fb-f005a67b756d
+
+NAME                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE   VOLUMEMODE
+persistentvolumeclaim/data-postgres-0   Bound    pvc-635c2eda-231b-4fa8-8b5d-f00a4c2bb40c   5Gi        RWO            standard       <unset>                 60m   Filesystem
+
+PS> kubectl get events -n $NS --sort-by=.lastTimestamp | Select-Object -Last 40
+2m28s       Normal    SuccessfulCreate        job/simulador-29913258                  Created pod: simulador-29913258-lw2rj
+2m28s       Normal    Created                 pod/simulador-29913258-lw2rj            Created container: simulador
+2m28s       Normal    Pulled                  pod/simulador-29913258-lw2rj            Container image "microrred-simulador:1.0.0" already present on machine
+2m28s       Normal    Scheduled               pod/simulador-29913258-lw2rj            Successfully assigned microrred/simulador-29913258-lw2rj to microrred-control-plane
+2m27s       Normal    Started                 pod/simulador-29913258-lw2rj            Started container simulador
+2m21s       Normal    Completed               job/simulador-29913258                  Job completed
+88s         Normal    Scheduled               pod/simulador-29913259-dsfkq            Successfully assigned microrred/simulador-29913259-dsfkq to microrred-control-plane
+88s         Normal    SuccessfulCreate        job/simulador-29913259                  Created pod: simulador-29913259-dsfkq
+87s         Normal    Pulled                  pod/simulador-29913259-dsfkq            Container image "microrred-simulador:1.0.0" already present on machine
+87s         Normal    Created                 pod/simulador-29913259-dsfkq            Created container: simulador
+87s         Normal    Started                 pod/simulador-29913259-dsfkq            Started container simulador
+79s         Normal    Completed               job/simulador-29913259                  Job completed
+34s         Normal    Killing                 pod/postgres-0                          Stopping container postgres
+33s         Normal    Started                 pod/postgres-0                          Started container postgres
+33s         Normal    Created                 pod/postgres-0                          Created container: postgres
+33s         Normal    Pulled                  pod/postgres-0                          Container image "postgres:16.9" already present on machine
+33s         Normal    Scheduled               pod/postgres-0                          Successfully assigned microrred/postgres-0 to microrred-control-plane
+33s         Normal    SuccessfulCreate        statefulset/postgres                    create Pod postgres-0 in StatefulSet postgres successful
+28s         Normal    Pulled                  pod/simulador-29913260-5zxdl            Container image "microrred-simulador:1.0.0" already present on machine
+28s         Normal    Scheduled               pod/simulador-29913260-5zxdl            Successfully assigned microrred/simulador-29913260-5zxdl to microrred-control-plane
+28s         Normal    Created                 pod/simulador-29913260-5zxdl            Created container: simulador
+28s         Normal    Started                 pod/simulador-29913260-5zxdl            Started container simulador
+28s         Normal    SuccessfulCreate        cronjob/simulador                       (combined from similar events): Created job simulador-29913260
+28s         Normal    SuccessfulCreate        job/simulador-29913260                  Created pod: simulador-29913260-5zxdl
+26s         Normal    Scheduled               pod/grafana-584df66dc6-28pxm            Successfully assigned microrred/grafana-584df66dc6-28pxm to microrred-control-plane
+26s         Normal    Killing                 pod/grafana-584df66dc6-khwlx            Stopping container grafana
+26s         Normal    SuccessfulCreate        replicaset/grafana-584df66dc6           Created pod: grafana-584df66dc6-28pxm
+25s         Normal    Started                 pod/grafana-584df66dc6-28pxm            Started container grafana
+25s         Normal    Pulled                  pod/grafana-584df66dc6-28pxm            Container image "grafana/grafana:12.2.0" already present on machine
+25s         Normal    Created                 pod/grafana-584df66dc6-28pxm            Created container: grafana
+22s         Normal    Completed               job/simulador-29913260                  Job completed
+13s         Normal    Scheduled               pod/grafana-584df66dc6-b56pb            Successfully assigned microrred/grafana-584df66dc6-b56pb to microrred-control-plane
+13s         Normal    SuccessfulCreate        replicaset/grafana-584df66dc6           Created pod: grafana-584df66dc6-b56pb
+13s         Normal    ScalingReplicaSet       deployment/grafana                      Scaled up replica set grafana-584df66dc6 from 1 to 2
+12s         Normal    Started                 pod/grafana-584df66dc6-b56pb            Started container grafana
+12s         Normal    Created                 pod/grafana-584df66dc6-b56pb            Created container: grafana
+12s         Normal    Pulled                  pod/grafana-584df66dc6-b56pb            Container image "grafana/grafana:12.2.0" already present on machine
+1s          Normal    Killing                 pod/grafana-584df66dc6-b56pb            Stopping container grafana
+1s          Normal    ScalingReplicaSet       deployment/grafana                      Scaled down replica set grafana-584df66dc6 from 2 to 1
+1s          Normal    SuccessfulDelete        replicaset/grafana-584df66dc6           Deleted pod: grafana-584df66dc6-b56pb
+

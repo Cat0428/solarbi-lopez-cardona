@@ -1,0 +1,17 @@
+# 2026-11-15 21:19:53 (hora de Colombia)
+PS> 'demo:'; kubectl kustomize k8s/overlays/demo | Select-String -Pattern 'SIM_ANOMALIA_CADA_MIN|schedule:|replicas:'
+demo:
+
+  SIM_ANOMALIA_CADA_MIN: "15"
+  replicas: 1
+  replicas: 1
+  schedule: '* * * * *'
+
+PS> 'dev:';  kubectl kustomize k8s/overlays/dev  | Select-String -Pattern 'SIM_ANOMALIA_CADA_MIN|schedule:|replicas:'
+dev:
+
+  SIM_ANOMALIA_CADA_MIN: "0"
+  replicas: 1
+  replicas: 1
+  schedule: '*/2 * * * *'
+

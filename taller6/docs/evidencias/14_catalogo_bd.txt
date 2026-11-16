@@ -1,0 +1,245 @@
+# 2026-11-15 21:19:53 (hora de Colombia)
+PS> PsqlArchivo 'sql/04_catalogo_dbeaver.sql'
+SELECT n.nspname                                   AS capa,
+       c.relname                                   AS tabla,
+       c.reltuples::bigint                         AS filas_estimadas,
+       pg_size_pretty(pg_total_relation_size(c.oid)) AS tamano_total
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE c.relkind = 'r'
+  AND n.nspname IN ('silver', 'gold', 'ops')
+ORDER BY n.nspname, pg_total_relation_size(c.oid) DESC;
+  capa  |         tabla         | filas_estimadas | tamano_total 
+--------+-----------------------+-----------------+--------------
+ gold   | fact_actividad        |           25178 | 3240 kB
+ gold   | fact_evento           |           24458 | 2848 kB
+ gold   | fact_energia_hora     |           17010 | 2184 kB
+ gold   | dim_fecha             |             813 | 192 kB
+ gold   | dim_tipo_evento       |              -1 | 48 kB
+ gold   | dim_fuente_contexto   |              -1 | 40 kB
+ gold   | dim_inversor          |              -1 | 40 kB
+ gold   | dim_hora              |              -1 | 24 kB
+ ops    | conciliacion          |              -1 | 32 kB
+ ops    | etl_regla             |              -1 | 32 kB
+ ops    | etl_ejecucion         |              -1 | 32 kB
+ ops    | conciliacion_contador |              -1 | 24 kB
+ silver | lectura_1min          |          782579 | 147 MB
+ silver | contexto              |           25178 | 24 MB
+ silver | falla_inversor        |           20516 | 6536 kB
+ silver | config_inversor       |              -1 | 24 kB
+ silver | rechazo_contexto      |              -1 | 16 kB
+(17 rows)
+
+SELECT 'dim_fecha'          AS tabla, count(*) AS filas FROM gold.dim_fecha
+UNION ALL SELECT 'dim_hora',            count(*) FROM gold.dim_hora
+UNION ALL SELECT 'dim_inversor',        count(*) FROM gold.dim_inversor
+UNION ALL SELECT 'dim_tipo_evento',     count(*) FROM gold.dim_tipo_evento
+UNION ALL SELECT 'dim_fuente_contexto', count(*) FROM gold.dim_fuente_contexto
+UNION ALL SELECT 'fact_energia_hora',   count(*) FROM gold.fact_energia_hora
+UNION ALL SELECT 'fact_evento',         count(*) FROM gold.fact_evento
+UNION ALL SELECT 'fact_actividad',      count(*) FROM gold.fact_actividad;
+        tabla        | filas 
+---------------------+-------
+ dim_fecha           |   813
+ dim_hora            |    24
+ dim_inversor        |     5
+ dim_tipo_evento     |    15
+ dim_fuente_contexto |     7
+ fact_energia_hora   | 17010
+ fact_evento         | 24458
+ fact_actividad      | 25178
+(8 rows)
+
+SELECT n.nspname                  AS capa,
+       c.conrelid::regclass       AS tabla,
+       CASE c.contype WHEN 'p' THEN 'PRIMARY KEY' WHEN 'f' THEN 'FOREIGN KEY'
+                      WHEN 'u' THEN 'UNIQUE'      ELSE 'CHECK' END AS tipo,
+       c.conname                  AS restriccion,
+       pg_get_constraintdef(c.oid) AS definicion
+FROM pg_constraint c
+JOIN pg_namespace n ON n.oid = c.connamespace
+WHERE n.nspname IN ('silver', 'gold', 'ops')
+  AND c.contype IN ('p', 'f', 'u', 'c')
+ORDER BY 1, 2::text, 3;
+  capa  |           tabla           |    tipo     |                restriccion                |                                                                               definicion                                                                               
+--------+---------------------------+-------------+-------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ gold   | gold.fact_energia_hora    | CHECK       | fact_energia_hora_minutos_con_datos_check | CHECK (((minutos_con_datos >= 0) AND (minutos_con_datos <= 60)))
+ gold   | gold.fact_evento          | FOREIGN KEY | fact_evento_fecha_key_fkey                | FOREIGN KEY (fecha_key) REFERENCES gold.dim_fecha(fecha_key)
+ gold   | gold.fact_actividad       | FOREIGN KEY | fact_actividad_fuente_key_fkey            | FOREIGN KEY (fuente_key) REFERENCES gold.dim_fuente_contexto(fuente_key)
+ gold   | gold.fact_energia_hora    | FOREIGN KEY | fact_energia_hora_inversor_key_fkey       | FOREIGN KEY (inversor_key) REFERENCES gold.dim_inversor(inversor_key)
+ gold   | gold.fact_energia_hora    | FOREIGN KEY | fact_energia_hora_hora_key_fkey           | FOREIGN KEY (hora_key) REFERENCES gold.dim_hora(hora_key)
+ gold   | gold.fact_actividad       | FOREIGN KEY | fact_actividad_hora_key_fkey              | FOREIGN KEY (hora_key) REFERENCES gold.dim_hora(hora_key)
+ gold   | gold.fact_actividad       | FOREIGN KEY | fact_actividad_fecha_key_fkey             | FOREIGN KEY (fecha_key) REFERENCES gold.dim_fecha(fecha_key)
+ gold   | gold.fact_energia_hora    | FOREIGN KEY | fact_energia_hora_fecha_key_fkey          | FOREIGN KEY (fecha_key) REFERENCES gold.dim_fecha(fecha_key)
+ gold   | gold.fact_actividad       | FOREIGN KEY | fact_actividad_inversor_key_fkey          | FOREIGN KEY (inversor_key) REFERENCES gold.dim_inversor(inversor_key)
+ gold   | gold.fact_evento          | FOREIGN KEY | fact_evento_tipo_evento_key_fkey          | FOREIGN KEY (tipo_evento_key) REFERENCES gold.dim_tipo_evento(tipo_evento_key)
+ gold   | gold.fact_evento          | FOREIGN KEY | fact_evento_hora_key_fkey                 | FOREIGN KEY (hora_key) REFERENCES gold.dim_hora(hora_key)
+ gold   | gold.fact_evento          | FOREIGN KEY | fact_evento_inversor_key_fkey             | FOREIGN KEY (inversor_key) REFERENCES gold.dim_inversor(inversor_key)
+ gold   | gold.dim_fecha            | PRIMARY KEY | dim_fecha_pkey                            | PRIMARY KEY (fecha_key)
+ gold   | gold.dim_hora             | PRIMARY KEY | dim_hora_pkey                             | PRIMARY KEY (hora_key)
+ gold   | gold.dim_inversor         | PRIMARY KEY | dim_inversor_pkey                         | PRIMARY KEY (inversor_key)
+ gold   | gold.fact_actividad       | PRIMARY KEY | fact_actividad_pkey                       | PRIMARY KEY (contexto_id)
+ gold   | gold.fact_evento          | PRIMARY KEY | fact_evento_pkey                          | PRIMARY KEY (evento_id)
+ gold   | gold.fact_energia_hora    | PRIMARY KEY | pk_fact_energia_hora                      | PRIMARY KEY (fecha_key, hora_key, inversor_key)
+ gold   | gold.dim_fuente_contexto  | PRIMARY KEY | dim_fuente_contexto_pkey                  | PRIMARY KEY (fuente_key)
+ gold   | gold.dim_tipo_evento      | PRIMARY KEY | dim_tipo_evento_pkey                      | PRIMARY KEY (tipo_evento_key)
+ gold   | gold.dim_fuente_contexto  | UNIQUE      | dim_fuente_contexto_fuente_key            | UNIQUE (fuente)
+ gold   | gold.dim_inversor         | UNIQUE      | uq_inversor_version                       | UNIQUE (inversor_id, vigente_desde)
+ gold   | gold.dim_tipo_evento      | UNIQUE      | dim_tipo_evento_codigo_key                | UNIQUE (codigo)
+ gold   | gold.dim_fecha            | UNIQUE      | dim_fecha_fecha_key                       | UNIQUE (fecha)
+ ops    | ops.etl_regla             | CHECK       | etl_regla_accion_check                    | CHECK (((accion)::text = ANY ((ARRAY['elimina'::character varying, 'corrige'::character varying, 'marca'::character varying, 'informa'::character varying])::text[])))
+ ops    | ops.etl_ejecucion         | CHECK       | etl_ejecucion_estado_check                | CHECK (((estado)::text = ANY ((ARRAY['en curso'::character varying, 'ok'::character varying, 'error'::character varying])::text[])))
+ ops    | ops.conciliacion          | FOREIGN KEY | conciliacion_ejecucion_id_fkey            | FOREIGN KEY (ejecucion_id) REFERENCES ops.etl_ejecucion(ejecucion_id) ON DELETE CASCADE
+ ops    | ops.etl_regla             | FOREIGN KEY | etl_regla_ejecucion_id_fkey               | FOREIGN KEY (ejecucion_id) REFERENCES ops.etl_ejecucion(ejecucion_id) ON DELETE CASCADE
+ ops    | ops.conciliacion_contador | FOREIGN KEY | conciliacion_contador_ejecucion_id_fkey   | FOREIGN KEY (ejecucion_id) REFERENCES ops.etl_ejecucion(ejecucion_id) ON DELETE CASCADE
+ ops    | ops.conciliacion_contador | PRIMARY KEY | conciliacion_contador_pkey                | PRIMARY KEY (ejecucion_id, inversor_id, mes, variable)
+ ops    | ops.etl_ejecucion         | PRIMARY KEY | etl_ejecucion_pkey                        | PRIMARY KEY (ejecucion_id)
+ ops    | ops.conciliacion          | PRIMARY KEY | conciliacion_pkey                         | PRIMARY KEY (ejecucion_id, control)
+ ops    | ops.etl_regla             | PRIMARY KEY | etl_regla_pkey                            | PRIMARY KEY (ejecucion_id, orden)
+ silver | silver.lectura_1min       | CHECK       | lectura_1min_carga_potencia_w_check       | CHECK ((carga_potencia_w >= (0)::numeric))
+ silver | silver.lectura_1min       | CHECK       | lectura_1min_pv_potencia_w_check          | CHECK ((pv_potencia_w >= (0)::numeric))
+ silver | silver.lectura_1min       | CHECK       | lectura_1min_soc_pct_check                | CHECK (((soc_pct >= (0)::numeric) AND (soc_pct <= (100)::numeric)))
+ silver | silver.config_inversor    | CHECK       | config_inversor_check                     | CHECK ((vigente_hasta >= vigente_desde))
+ silver | silver.contexto           | CHECK       | ck_contexto_intervalo                     | CHECK ((fin_ts >= inicio_ts))
+ silver | silver.lectura_1min       | CHECK       | lectura_1min_red_potencia_w_check         | CHECK ((red_potencia_w >= (0)::numeric))
+ silver | silver.lectura_1min       | CHECK       | lectura_1min_segundos_cubiertos_check     | CHECK (((segundos_cubiertos >= (0)::numeric) AND (segundos_cubiertos <= (120)::numeric)))
+ silver | silver.lectura_1min       | CHECK       | lectura_1min_check                        | CHECK (((n_lecturas >= 0) AND (n_lecturas <= n_recibidas)))
+ silver | silver.lectura_1min       | CHECK       | lectura_1min_n_recibidas_check            | CHECK ((n_recibidas > 0))
+ silver | silver.lectura_1min       | CHECK       | lectura_1min_origen_check                 | CHECK (((origen)::text = ANY ((ARRAY['historico'::character varying, 'simulador'::character varying])::text[])))
+ silver | silver.lectura_1min       | CHECK       | lectura_1min_inversor_id_check            | CHECK ((inversor_id = ANY (ARRAY[1, 2])))
+ silver | silver.rechazo_contexto   | PRIMARY KEY | rechazo_contexto_pkey                     | PRIMARY KEY (contexto_id)
+ silver | silver.falla_inversor     | PRIMARY KEY | falla_inversor_pkey                       | PRIMARY KEY (inversor_id, ts, codigo)
+ silver | silver.lectura_1min       | PRIMARY KEY | pk_lectura_1min                           | PRIMARY KEY (inversor_id, ts)
+ silver | silver.contexto           | PRIMARY KEY | contexto_pkey                             | PRIMARY KEY (contexto_id)
+ silver | silver.config_inversor    | PRIMARY KEY | config_inversor_pkey                      | PRIMARY KEY (inversor_id, vigente_desde)
+(49 rows)
+
+SELECT schemaname AS capa,
+       tablename  AS tabla,
+       indexname  AS indice,
+       split_part(split_part(indexdef, 'USING ', 2), ' ', 1) AS tipo,
+       pg_size_pretty(pg_relation_size(format('%I.%I', schemaname, indexname)::regclass)) AS tamano,
+       indexdef   AS definicion
+FROM pg_indexes
+WHERE schemaname IN ('silver', 'gold', 'ops')
+ORDER BY schemaname, tablename, indexname;
+  capa  |         tabla         |             indice             | tipo  |   tamano   |                                                             definicion                                                             
+--------+-----------------------+--------------------------------+-------+------------+------------------------------------------------------------------------------------------------------------------------------------
+ gold   | dim_fecha             | dim_fecha_fecha_key            | btree | 40 kB      | CREATE UNIQUE INDEX dim_fecha_fecha_key ON gold.dim_fecha USING btree (fecha)
+ gold   | dim_fecha             | dim_fecha_pkey                 | btree | 40 kB      | CREATE UNIQUE INDEX dim_fecha_pkey ON gold.dim_fecha USING btree (fecha_key)
+ gold   | dim_fuente_contexto   | dim_fuente_contexto_fuente_key | btree | 16 kB      | CREATE UNIQUE INDEX dim_fuente_contexto_fuente_key ON gold.dim_fuente_contexto USING btree (fuente)
+ gold   | dim_fuente_contexto   | dim_fuente_contexto_pkey       | btree | 16 kB      | CREATE UNIQUE INDEX dim_fuente_contexto_pkey ON gold.dim_fuente_contexto USING btree (fuente_key)
+ gold   | dim_hora              | dim_hora_pkey                  | btree | 16 kB      | CREATE UNIQUE INDEX dim_hora_pkey ON gold.dim_hora USING btree (hora_key)
+ gold   | dim_inversor          | dim_inversor_pkey              | btree | 16 kB      | CREATE UNIQUE INDEX dim_inversor_pkey ON gold.dim_inversor USING btree (inversor_key)
+ gold   | dim_inversor          | uq_inversor_version            | btree | 16 kB      | CREATE UNIQUE INDEX uq_inversor_version ON gold.dim_inversor USING btree (inversor_id, vigente_desde)
+ gold   | dim_tipo_evento       | dim_tipo_evento_codigo_key     | btree | 16 kB      | CREATE UNIQUE INDEX dim_tipo_evento_codigo_key ON gold.dim_tipo_evento USING btree (codigo)
+ gold   | dim_tipo_evento       | dim_tipo_evento_pkey           | btree | 16 kB      | CREATE UNIQUE INDEX dim_tipo_evento_pkey ON gold.dim_tipo_evento USING btree (tipo_evento_key)
+ gold   | fact_actividad        | fact_actividad_pkey            | btree | 568 kB     | CREATE UNIQUE INDEX fact_actividad_pkey ON gold.fact_actividad USING btree (contexto_id)
+ gold   | fact_actividad        | ix_fa_fecha                    | btree | 256 kB     | CREATE INDEX ix_fa_fecha ON gold.fact_actividad USING btree (fecha_key)
+ gold   | fact_energia_hora     | ix_feh_inversor_fecha          | btree | 144 kB     | CREATE INDEX ix_feh_inversor_fecha ON gold.fact_energia_hora USING btree (inversor_key, fecha_key)
+ gold   | fact_energia_hora     | pk_fact_energia_hora           | btree | 400 kB     | CREATE UNIQUE INDEX pk_fact_energia_hora ON gold.fact_energia_hora USING btree (fecha_key, hora_key, inversor_key)
+ gold   | fact_evento           | fact_evento_pkey               | btree | 552 kB     | CREATE UNIQUE INDEX fact_evento_pkey ON gold.fact_evento USING btree (evento_id)
+ gold   | fact_evento           | ix_fe_tipo_fecha               | btree | 240 kB     | CREATE INDEX ix_fe_tipo_fecha ON gold.fact_evento USING btree (tipo_evento_key, fecha_key)
+ ops    | conciliacion          | conciliacion_pkey              | btree | 16 kB      | CREATE UNIQUE INDEX conciliacion_pkey ON ops.conciliacion USING btree (ejecucion_id, control)
+ ops    | conciliacion_contador | conciliacion_contador_pkey     | btree | 16 kB      | CREATE UNIQUE INDEX conciliacion_contador_pkey ON ops.conciliacion_contador USING btree (ejecucion_id, inversor_id, mes, variable)
+ ops    | etl_ejecucion         | etl_ejecucion_pkey             | btree | 16 kB      | CREATE UNIQUE INDEX etl_ejecucion_pkey ON ops.etl_ejecucion USING btree (ejecucion_id)
+ ops    | etl_regla             | etl_regla_pkey                 | btree | 16 kB      | CREATE UNIQUE INDEX etl_regla_pkey ON ops.etl_regla USING btree (ejecucion_id, orden)
+ silver | config_inversor       | config_inversor_pkey           | btree | 16 kB      | CREATE UNIQUE INDEX config_inversor_pkey ON silver.config_inversor USING btree (inversor_id, vigente_desde)
+ silver | contexto              | contexto_pkey                  | btree | 568 kB     | CREATE UNIQUE INDEX contexto_pkey ON silver.contexto USING btree (contexto_id)
+ silver | contexto              | gin_contexto_valor             | gin   | 6232 kB    | CREATE INDEX gin_contexto_valor ON silver.contexto USING gin (valor jsonb_path_ops)
+ silver | contexto              | ix_contexto_inicio             | btree | 704 kB     | CREATE INDEX ix_contexto_inicio ON silver.contexto USING btree (inicio_ts)
+ silver | falla_inversor        | falla_inversor_pkey            | btree | 1248 kB    | CREATE UNIQUE INDEX falla_inversor_pkey ON silver.falla_inversor USING btree (inversor_id, ts, codigo)
+ silver | lectura_1min          | brin_lectura_1min_ts           | brin  | 24 kB      | CREATE INDEX brin_lectura_1min_ts ON silver.lectura_1min USING brin (ts)
+ silver | lectura_1min          | pk_lectura_1min                | btree | 24 MB      | CREATE UNIQUE INDEX pk_lectura_1min ON silver.lectura_1min USING btree (inversor_id, ts)
+ silver | rechazo_contexto      | rechazo_contexto_pkey          | btree | 8192 bytes | CREATE UNIQUE INDEX rechazo_contexto_pkey ON silver.rechazo_contexto USING btree (contexto_id)
+(27 rows)
+
+EXPLAIN (ANALYZE, BUFFERS, COSTS OFF)
+SELECT count(*) FROM silver.contexto WHERE valor @> '{"inverter": 1}';
+                                QUERY PLAN                                
+--------------------------------------------------------------------------
+ Aggregate (actual time=9.620..9.622 rows=1 loops=1)
+   Buffers: shared hit=2176
+   ->  Seq Scan on contexto (actual time=0.106..8.440 rows=24029 loops=1)
+         Filter: (valor @> '{"inverter": 1}'::jsonb)
+         Rows Removed by Filter: 1149
+         Buffers: shared hit=2176
+ Planning:
+   Buffers: shared hit=43
+ Planning Time: 1.023 ms
+ Execution Time: 9.655 ms
+(10 rows)
+
+BEGIN;
+BEGIN
+SET LOCAL enable_seqscan = off;
+SET
+EXPLAIN (COSTS OFF) SELECT count(*) FROM silver.contexto WHERE valor @> '{"inverter": 1}';
+                          QUERY PLAN                           
+---------------------------------------------------------------
+ Aggregate
+   ->  Bitmap Heap Scan on contexto
+         Recheck Cond: (valor @> '{"inverter": 1}'::jsonb)
+         ->  Bitmap Index Scan on gin_contexto_valor
+               Index Cond: (valor @> '{"inverter": 1}'::jsonb)
+(5 rows)
+
+ROLLBACK;
+ROLLBACK
+EXPLAIN (ANALYZE, BUFFERS, COSTS OFF)
+SELECT count(*) AS minutos, round(avg(soc_pct), 1) AS soc_prom
+FROM silver.lectura_1min
+WHERE ts >= '2025-09-01 00:00+08' AND ts < '2025-09-02 00:00+08';
+                                                                      QUERY PLAN                                                                      
+------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate (actual time=5.103..5.104 rows=1 loops=1)
+   Buffers: shared hit=80 read=512
+   ->  Bitmap Heap Scan on lectura_1min (actual time=1.454..4.925 rows=1556 loops=1)
+         Recheck Cond: ((ts >= '2025-08-31 11:00:00-05'::timestamp with time zone) AND (ts < '2025-09-01 11:00:00-05'::timestamp with time zone))
+         Rows Removed by Index Recheck: 26904
+         Heap Blocks: lossy=584
+         Buffers: shared hit=80 read=512
+         ->  Bitmap Index Scan on brin_lectura_1min_ts (actual time=0.106..0.106 rows=5840 loops=1)
+               Index Cond: ((ts >= '2025-08-31 11:00:00-05'::timestamp with time zone) AND (ts < '2025-09-01 11:00:00-05'::timestamp with time zone))
+               Buffers: shared hit=8
+ Planning:
+   Buffers: shared hit=45
+ Planning Time: 0.202 ms
+ Execution Time: 5.137 ms
+(14 rows)
+
+SELECT table_schema AS capa,
+       count(*) FILTER (WHERE privilege_type = 'SELECT')                 AS tablas_con_select,
+       count(*) FILTER (WHERE privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')) AS permisos_escritura
+FROM information_schema.role_table_grants
+WHERE grantee = 'bi_lector'
+GROUP BY table_schema
+ORDER BY table_schema;
+  capa  | tablas_con_select | permisos_escritura 
+--------+-------------------+--------------------
+ gold   |                 8 |                  0
+ ops    |                 4 |                  0
+ silver |                 5 |                  0
+(3 rows)
+
+SELECT ejecucion_id, inicio, fin, fin - inicio AS duracion, estado, archivo_bronze,
+       left(sha256_bronze, 12) AS sha256_inicio
+FROM ops.etl_ejecucion
+ORDER BY ejecucion_id DESC
+LIMIT 5;
+ ejecucion_id |            inicio             |              fin              |    duracion     | estado |    archivo_bronze     | sha256_inicio 
+--------------+-------------------------------+-------------------------------+-----------------+--------+-----------------------+---------------
+            1 | 2026-11-15 20:20:50.160457-05 | 2026-11-15 20:24:08.375438-05 | 00:03:18.214981 | ok     | opencem-v1.0.0.sqlite | 5fe1f213a4a6
+(1 row)
+
+SELECT inversor_id, max(ts) AT TIME ZONE 'America/Bogota' AS ultimo_minuto_colombia,
+       count(*) AS minutos_simulados
+FROM silver.lectura_1min
+WHERE origen = 'simulador'
+GROUP BY inversor_id;
+ inversor_id | ultimo_minuto_colombia | minutos_simulados 
+-------------+------------------------+-------------------
+           1 | 2026-11-15 21:19:00    |               235
+           2 | 2026-11-15 21:19:00    |               235
+(2 rows)
+

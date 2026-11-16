@@ -1,0 +1,32 @@
+# 2026-11-15 21:19:52 (hora de Colombia)
+PS> kubectl get pods -n $NS -o custom-columns='POD:.metadata.name,REQ_CPU:.spec.containers[*].resources.requests.cpu,REQ_MEM:.spec.containers[*].resources.requests.memory,LIM_CPU:.spec.containers[*].resources.limits.cpu,LIM_MEM:.spec.containers[*].resources.limits.memory'
+POD                        REQ_CPU   REQ_MEM   LIM_CPU   LIM_MEM
+etl-historico-srbmj        500m      1536Mi    2         4Gi
+grafana-584df66dc6-khwlx   100m      256Mi     500m      512Mi
+postgres-0                 250m      512Mi     1         1Gi
+simulador-29913200-j96rk   50m       64Mi      250m      128Mi
+simulador-29913200-lssjv   50m       64Mi      250m      128Mi
+simulador-29913201-spknb   50m       64Mi      250m      128Mi
+simulador-29913201-vtflx   50m       64Mi      250m      128Mi
+simulador-29913257-vdtpz   50m       64Mi      250m      128Mi
+simulador-29913258-lw2rj   50m       64Mi      250m      128Mi
+simulador-29913259-dsfkq   50m       64Mi      250m      128Mi
+
+PS> kubectl get cronjob simulador -n $NS -o jsonpath='{.spec.jobTemplate.spec.template.spec.containers[0].resources}'
+{"limits":{"cpu":"250m","memory":"128Mi"},"requests":{"cpu":"50m","memory":"64Mi"}}
+
+PS> kubectl get job etl-historico -n $NS -o jsonpath='{.spec.template.spec.containers[0].resources}'
+{"limits":{"cpu":"2","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1536Mi"}}
+
+PS> kubectl get statefulset postgres -n $NS -o jsonpath='{.spec.template.spec.containers[0].livenessProbe}'
+{"exec":{"command":["sh","-c","pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -h 127.0.0.1"]},"failureThreshold":6,"initialDelaySeconds":30,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":1}
+
+PS> kubectl get statefulset postgres -n $NS -o jsonpath='{.spec.template.spec.containers[0].readinessProbe}'
+{"exec":{"command":["sh","-c","pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -h 127.0.0.1"]},"failureThreshold":3,"initialDelaySeconds":5,"periodSeconds":5,"successThreshold":1,"timeoutSeconds":1}
+
+PS> kubectl get deployment grafana -n $NS -o jsonpath='{.spec.template.spec.containers[0].livenessProbe}'
+{"failureThreshold":4,"httpGet":{"path":"/api/health","port":"http","scheme":"HTTP"},"initialDelaySeconds":60,"periodSeconds":15,"successThreshold":1,"timeoutSeconds":1}
+
+PS> kubectl get deployment grafana -n $NS -o jsonpath='{.spec.template.spec.containers[0].readinessProbe}'
+{"failureThreshold":3,"httpGet":{"path":"/api/health","port":"http","scheme":"HTTP"},"initialDelaySeconds":10,"periodSeconds":5,"successThreshold":1,"timeoutSeconds":1}
+

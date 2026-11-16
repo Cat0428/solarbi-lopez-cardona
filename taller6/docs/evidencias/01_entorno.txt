@@ -1,0 +1,20 @@
+# 2026-11-15 21:19:48 (hora de Colombia)
+PS> docker version --format 'Docker cliente {{.Client.Version}} / servidor {{.Server.Version}}'
+Docker cliente 29.9.2 / servidor 29.9.2
+
+PS> kind version
+kind v0.33.0 go1.26.7 windows/amd64
+
+PS> kubectl version
+Client Version: v1.36.1
+Kustomize Version: v5.8.1
+Server Version: v1.33.1
+(Warning: version difference between client (1.36) and server (1.33) exceeds the supported minor version skew of +/-1)
+
+PS> kind get clusters
+microrred
+
+PS> kubectl get nodes -o wide
+NAME                      STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION                     CONTAINER-RUNTIME
+microrred-control-plane   Ready    control-plane   62m   v1.33.1   172.23.0.2    <none>        Debian GNU/Linux 12 (bookworm)   6.6.87.2-microsoft-standard-WSL2   containerd://2.1.1
+

@@ -1,0 +1,12 @@
+# Verificacion SHA-256 (2026-11-15T23:31:53+00:00) · equipo del autor
+## Contra opencem-v1.0.0-SHA256SUMS.txt (Zenodo)
+opencem-v1.0.0-support.zip: OK
+opencem-v1.0.0.sqlite.zst: OK
+
+## Base descomprimida contra manifests/release_manifest.json (support.zip)
+esperado: 5fe1f213a4a6804cdfc75f6173f437772c918f45dc0f127eb7e8936c2c2d9fbb  opencem-v1.0.0.sqlite (4439408640 bytes)
+calculado: 5fe1f213a4a6804cdfc75f6173f437772c918f45dc0f127eb7e8936c2c2d9fbb  opencem-v1.0.0.sqlite
+4439408640 bytes
+
+# Descompresion: *** zstd command line interface 64-bits v1.4.8, by Yann Collet ***
+zstd -d opencem-v1.0.0.sqlite.zst -o opencem-v1.0.0.sqlite

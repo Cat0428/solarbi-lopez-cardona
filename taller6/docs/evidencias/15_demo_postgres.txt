@@ -1,0 +1,35 @@
+# 2026-11-15 21:19:54 (hora de Colombia)
+PS> kubectl get pod postgres-0 -n $NS -o custom-columns='POD:.metadata.name,UID:.metadata.uid,INICIO:.status.startTime,PVC:.spec.volumes[0].persistentVolumeClaim.claimName'
+POD          UID                                    INICIO                 PVC
+postgres-0   19fbda8f-b1db-4e37-bee1-a8fc6139d0ae   2026-11-16T01:56:59Z   data-postgres-0
+
+PS> Psql $CONTEO
+              tabla              | count  
+---------------------------------+--------
+ gold.fact_energia_hora          |  17010
+ gold.fact_evento                |  24458
+ gold.fact_actividad             |  25178
+ silver.lectura_1min (simulador) |    470
+ silver.lectura_1min (historico) | 782217
+(5 rows)
+
+PS> kubectl delete pod postgres-0 -n $NS
+pod "postgres-0" deleted from microrred namespace
+
+PS> Start-Sleep 5; kubectl wait --for=condition=ready pod/postgres-0 -n $NS --timeout=240s
+pod/postgres-0 condition met
+
+PS> kubectl get pod postgres-0 -n $NS -o custom-columns='POD:.metadata.name,UID:.metadata.uid,INICIO:.status.startTime,PVC:.spec.volumes[0].persistentVolumeClaim.claimName'
+POD          UID                                    INICIO                 PVC
+postgres-0   758ef7ee-abe1-4b06-a325-fe0ee30e6ddc   2026-11-16T02:19:55Z   data-postgres-0
+
+PS> Psql $CONTEO
+              tabla              | count  
+---------------------------------+--------
+ gold.fact_energia_hora          |  17010
+ gold.fact_evento                |  24458
+ gold.fact_actividad             |  25178
+ silver.lectura_1min (simulador) |    470
+ silver.lectura_1min (historico) | 782217
+(5 rows)
+

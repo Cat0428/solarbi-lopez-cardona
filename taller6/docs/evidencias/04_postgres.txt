@@ -1,0 +1,162 @@
+# 2026-11-15 21:19:50 (hora de Colombia)
+PS> kubectl describe statefulset postgres -n $NS
+Name:               postgres
+Namespace:          microrred
+CreationTimestamp:  Sun, 15 Nov 2026 20:19:31 -0500
+Selector:           app=postgres
+Labels:             app=postgres
+                    app.kubernetes.io/part-of=microrred-bi
+Annotations:        <none>
+Replicas:           1 desired | 1 total
+Update Strategy:    RollingUpdate
+  Partition:        0
+Pods Status:        1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=postgres
+  Containers:
+   postgres:
+    Image:      postgres:16.9
+    Port:       5432/TCP (pg)
+    Host Port:  0/TCP (pg)
+    Limits:
+      cpu:     1
+      memory:  1Gi
+    Requests:
+      cpu:      250m
+      memory:   512Mi
+    Liveness:   exec [sh -c pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1] delay=30s timeout=1s period=10s #success=1 #failure=6
+    Readiness:  exec [sh -c pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1] delay=5s timeout=1s period=5s #success=1 #failure=3
+    Environment Variables from:
+      microrred-credenciales  Secret  Optional: false
+    Environment:
+      PGDATA:  /var/lib/postgresql/data/pgdata
+      TZ:      America/Bogota
+      PGTZ:    America/Bogota
+    Mounts:
+      /docker-entrypoint-initdb.d from init (ro)
+      /var/lib/postgresql/data from data (rw)
+  Volumes:
+   init:
+    Type:          ConfigMap (a volume populated by a ConfigMap)
+    Name:          postgres-init-9kbdhmm7ht
+    Optional:      false
+  Node-Selectors:  <none>
+  Tolerations:     <none>
+Volume Claims:
+  Name:          data
+  StorageClass:  
+  Labels:        <none>
+  Annotations:   <none>
+  Capacity:      5Gi
+  Access Modes:  [ReadWriteOnce]
+Events:
+  Type    Reason            Age                From                    Message
+  ----    ------            ----               ----                    -------
+  Normal  SuccessfulCreate  60m                statefulset-controller  create Claim data-postgres-0 Pod postgres-0 in StatefulSet postgres success
+  Normal  SuccessfulCreate  22m (x3 over 60m)  statefulset-controller  create Pod postgres-0 in StatefulSet postgres successful
+
+PS> kubectl describe pod postgres-0 -n $NS
+Name:             postgres-0
+Namespace:        microrred
+Priority:         0
+Service Account:  default
+Node:             microrred-control-plane/172.23.0.2
+Start Time:       Sun, 15 Nov 2026 20:56:59 -0500
+Labels:           app=postgres
+                  apps.kubernetes.io/pod-index=0
+                  controller-revision-hash=postgres-5cf7f9cbf5
+                  statefulset.kubernetes.io/pod-name=postgres-0
+Annotations:      <none>
+Status:           Running
+IP:               10.244.0.52
+IPs:
+  IP:           10.244.0.52
+Controlled By:  StatefulSet/postgres
+Containers:
+  postgres:
+    Container ID:   containerd://7b77c76198b425faa09c6f3569379fc110d444c9f6d7be045988635a37b3e475
+    Image:          postgres:16.9
+    Image ID:       docker.io/library/postgres@sha256:ddfe3e8713e3ee5b8f286082cb12512488dfbf3f5a1ecb0b74a42e6055af0a5f
+    Port:           5432/TCP (pg)
+    Host Port:      0/TCP (pg)
+    State:          Running
+      Started:      Sun, 15 Nov 2026 20:56:59 -0500
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     1
+      memory:  1Gi
+    Requests:
+      cpu:      250m
+      memory:   512Mi
+    Liveness:   exec [sh -c pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1] delay=30s timeout=1s period=10s #success=1 #failure=6
+    Readiness:  exec [sh -c pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1] delay=5s timeout=1s period=5s #success=1 #failure=3
+    Environment Variables from:
+      microrred-credenciales  Secret  Optional: false
+    Environment:
+      PGDATA:  /var/lib/postgresql/data/pgdata
+      TZ:      America/Bogota
+      PGTZ:    America/Bogota
+    Mounts:
+      /docker-entrypoint-initdb.d from init (ro)
+      /var/lib/postgresql/data from data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-gczmx (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  data:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  data-postgres-0
+    ReadOnly:   false
+  init:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      postgres-init-9kbdhmm7ht
+    Optional:  false
+  kube-api-access-gczmx:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  22m   default-scheduler  Successfully assigned microrred/postgres-0 to microrred-control-plane
+  Normal  Pulled     22m   kubelet            spec.containers{postgres}: Container image "postgres:16.9" already present on machine
+  Normal  Created    22m   kubelet            spec.containers{postgres}: Created container: postgres
+  Normal  Started    22m   kubelet            spec.containers{postgres}: Started container postgres
+
+PS> kubectl describe pvc -n $NS
+Name:          data-postgres-0
+Namespace:     microrred
+StorageClass:  standard
+Status:        Bound
+Volume:        pvc-635c2eda-231b-4fa8-8b5d-f00a4c2bb40c
+Labels:        app=postgres
+Annotations:   pv.kubernetes.io/bind-completed: yes
+               pv.kubernetes.io/bound-by-controller: yes
+               volume.beta.kubernetes.io/storage-provisioner: rancher.io/local-path
+               volume.kubernetes.io/selected-node: microrred-control-plane
+               volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      5Gi
+Access Modes:  RWO
+VolumeMode:    Filesystem
+Used By:       postgres-0
+Events:
+  Type    Reason                 Age                From                                                                                                Message
+  ----    ------                 ----               ----                                                                                                -------
+  Normal  WaitForFirstConsumer   60m                persistentvolume-controller                                                                         waiting for first consumer to be created before binding
+  Normal  Provisioning           60m                rancher.io/local-path_local-path-provisioner-7dc846544d-p9cjt_ecac272b-a965-4ab4-bdc1-a92e1ffc832f  External provisioner is provisioning volume for claim "microrred/data-postgres-0"
+  Normal  ExternalProvisioning   60m (x2 over 60m)  persistentvolume-controller                                                                         Waiting for a volume to be created either by the external provisioner 'rancher.io/local-path' or manually by the system administrator. If volume creation is delayed, please verify that the provisioner is running and correctly registered.
+  Normal  ProvisioningSucceeded  60m                rancher.io/local-path_local-path-provisioner-7dc846544d-p9cjt_ecac272b-a965-4ab4-bdc1-a92e1ffc832f  Successfully provisioned volume pvc-635c2eda-231b-4fa8-8b5d-f00a4c2bb40c
+

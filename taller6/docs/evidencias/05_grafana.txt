@@ -1,0 +1,180 @@
+# 2026-11-15 21:19:50 (hora de Colombia)
+PS> kubectl describe deployment grafana -n $NS
+Name:                   grafana
+Namespace:              microrred
+CreationTimestamp:      Sun, 15 Nov 2026 20:19:31 -0500
+Labels:                 app=grafana
+                        app.kubernetes.io/part-of=microrred-bi
+Annotations:            deployment.kubernetes.io/revision: 2
+Selector:               app=grafana
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=grafana
+  Containers:
+   grafana:
+    Image:      grafana/grafana:12.2.0
+    Port:       3000/TCP (http)
+    Host Port:  0/TCP (http)
+    Limits:
+      cpu:     500m
+      memory:  512Mi
+    Requests:
+      cpu:      100m
+      memory:   256Mi
+    Liveness:   http-get http://:http/api/health delay=60s timeout=1s period=15s #success=1 #failure=4
+    Readiness:  http-get http://:http/api/health delay=10s timeout=1s period=5s #success=1 #failure=3
+    Environment:
+      GF_SECURITY_ADMIN_USER:            <set to the key 'GF_SECURITY_ADMIN_USER' in secret 'microrred-credenciales'>      Optional: false
+      GF_SECURITY_ADMIN_PASSWORD:        <set to the key 'GF_SECURITY_ADMIN_PASSWORD' in secret 'microrred-credenciales'>  Optional: false
+      BI_LECTOR_PASSWORD:                <set to the key 'BI_LECTOR_PASSWORD' in secret 'microrred-credenciales'>          Optional: false
+      POSTGRES_DB:                       <set to the key 'POSTGRES_DB' in secret 'microrred-credenciales'>                 Optional: false
+      PGHOST:                            postgres.microrred.svc.cluster.local:5432
+      GF_AUTH_ANONYMOUS_ENABLED:         false
+      GF_USERS_ALLOW_SIGN_UP:            false
+      GF_USERS_DEFAULT_LANGUAGE:         es-ES
+      GF_DATE_FORMATS_DEFAULT_TIMEZONE:  America/Bogota
+    Mounts:
+      /etc/grafana/provisioning/alerting from alertas (ro)
+      /etc/grafana/provisioning/dashboards from prov-dash (ro)
+      /etc/grafana/provisioning/datasources from ds (ro)
+      /var/lib/grafana from datos (rw)
+      /var/lib/grafana/dashboards from tableros (ro)
+  Volumes:
+   ds:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      grafana-datasources-k24494c2d6
+    Optional:  false
+   prov-dash:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      grafana-dashboards-provider-km8t7bgt85
+    Optional:  false
+   alertas:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      grafana-alertas-785b9k9ddg
+    Optional:  false
+   tableros:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      grafana-tableros-gmkm265ddd
+    Optional:  false
+   datos:
+    Type:          EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:        
+    SizeLimit:     <unset>
+  Node-Selectors:  <none>
+  Tolerations:     <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Progressing    True    NewReplicaSetAvailable
+  Available      True    MinimumReplicasAvailable
+OldReplicaSets:  grafana-56866696c5 (0/0 replicas created)
+NewReplicaSet:   grafana-584df66dc6 (1/1 replicas created)
+Events:
+  Type    Reason             Age                From                   Message
+  ----    ------             ----               ----                   -------
+  Normal  ScalingReplicaSet  60m                deployment-controller  Scaled up replica set grafana-56866696c5 from 0 to 1
+  Normal  ScalingReplicaSet  38m                deployment-controller  Scaled up replica set grafana-584df66dc6 from 0 to 1
+  Normal  ScalingReplicaSet  37m                deployment-controller  Scaled down replica set grafana-56866696c5 from 1 to 0
+  Normal  ScalingReplicaSet  22m (x2 over 37m)  deployment-controller  Scaled up replica set grafana-584df66dc6 from 1 to 2
+  Normal  ScalingReplicaSet  22m (x2 over 36m)  deployment-controller  Scaled down replica set grafana-584df66dc6 from 2 to 1
+
+PS> kubectl describe pod -l app=grafana -n $NS
+Name:             grafana-584df66dc6-khwlx
+Namespace:        microrred
+Priority:         0
+Service Account:  default
+Node:             microrred-control-plane/172.23.0.2
+Start Time:       Sun, 15 Nov 2026 20:57:06 -0500
+Labels:           app=grafana
+                  pod-template-hash=584df66dc6
+Annotations:      <none>
+Status:           Running
+IP:               10.244.0.54
+IPs:
+  IP:           10.244.0.54
+Controlled By:  ReplicaSet/grafana-584df66dc6
+Containers:
+  grafana:
+    Container ID:   containerd://80c23d2ba9b4a211578137dc93fe928838a0d4e605f577fc2ceee51df163d2a8
+    Image:          grafana/grafana:12.2.0
+    Image ID:       docker.io/grafana/grafana@sha256:74144189b38447facf737dfd0f3906e42e0776212bf575dc3334c3609183adf7
+    Port:           3000/TCP (http)
+    Host Port:      0/TCP (http)
+    State:          Running
+      Started:      Sun, 15 Nov 2026 20:57:07 -0500
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     500m
+      memory:  512Mi
+    Requests:
+      cpu:      100m
+      memory:   256Mi
+    Liveness:   http-get http://:http/api/health delay=60s timeout=1s period=15s #success=1 #failure=4
+    Readiness:  http-get http://:http/api/health delay=10s timeout=1s period=5s #success=1 #failure=3
+    Environment:
+      GF_SECURITY_ADMIN_USER:            <set to the key 'GF_SECURITY_ADMIN_USER' in secret 'microrred-credenciales'>      Optional: false
+      GF_SECURITY_ADMIN_PASSWORD:        <set to the key 'GF_SECURITY_ADMIN_PASSWORD' in secret 'microrred-credenciales'>  Optional: false
+      BI_LECTOR_PASSWORD:                <set to the key 'BI_LECTOR_PASSWORD' in secret 'microrred-credenciales'>          Optional: false
+      POSTGRES_DB:                       <set to the key 'POSTGRES_DB' in secret 'microrred-credenciales'>                 Optional: false
+      PGHOST:                            postgres.microrred.svc.cluster.local:5432
+      GF_AUTH_ANONYMOUS_ENABLED:         false
+      GF_USERS_ALLOW_SIGN_UP:            false
+      GF_USERS_DEFAULT_LANGUAGE:         es-ES
+      GF_DATE_FORMATS_DEFAULT_TIMEZONE:  America/Bogota
+    Mounts:
+      /etc/grafana/provisioning/alerting from alertas (ro)
+      /etc/grafana/provisioning/dashboards from prov-dash (ro)
+      /etc/grafana/provisioning/datasources from ds (ro)
+      /var/lib/grafana from datos (rw)
+      /var/lib/grafana/dashboards from tableros (ro)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-pql2j (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  ds:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      grafana-datasources-k24494c2d6
+    Optional:  false
+  prov-dash:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      grafana-dashboards-provider-km8t7bgt85
+    Optional:  false
+  alertas:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      grafana-alertas-785b9k9ddg
+    Optional:  false
+  tableros:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      grafana-tableros-gmkm265ddd
+    Optional:  false
+  datos:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  kube-api-access-pql2j:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  22m   default-scheduler  Successfully assigned microrred/grafana-584df66dc6-khwlx to microrred-control-plane
+  Normal  Pulled     22m   kubelet            spec.containers{grafana}: Container image "grafana/grafana:12.2.0" already present on machine
+  Normal  Created    22m   kubelet            spec.containers{grafana}: Created container: grafana
+  Normal  Started    22m   kubelet            spec.containers{grafana}: Started container grafana
+

@@ -1,0 +1,23 @@
+# 2026-11-15 21:20:15 (hora de Colombia)
+PS> kubectl scale deployment grafana -n $NS --replicas=2
+deployment.apps/grafana scaled
+
+PS> kubectl rollout status deployment/grafana -n $NS --timeout=240s
+Waiting for deployment "grafana" rollout to finish: 1 of 2 updated replicas are available...
+deployment "grafana" successfully rolled out
+
+PS> kubectl get pods -l app=grafana -n $NS -o wide
+NAME                       READY   STATUS    RESTARTS   AGE   IP            NODE                      NOMINATED NODE   READINESS GATES
+grafana-584df66dc6-28pxm   1/1     Running   0          25s   10.244.0.80   microrred-control-plane   <none>           <none>
+grafana-584df66dc6-b56pb   1/1     Running   0          12s   10.244.0.81   microrred-control-plane   <none>           <none>
+
+PS> kubectl get endpointslices -n $NS -l kubernetes.io/service-name=grafana
+NAME            ADDRESSTYPE   PORTS   ENDPOINTS                 AGE
+grafana-ttnmp   IPv4          3000    10.244.0.80,10.244.0.81   60m
+
+PS> kubectl scale deployment grafana -n $NS --replicas=1
+deployment.apps/grafana scaled
+
+PS> kubectl rollout status deployment/grafana -n $NS --timeout=240s
+deployment "grafana" successfully rolled out
+

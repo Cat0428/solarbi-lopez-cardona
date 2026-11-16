@@ -1,0 +1,56 @@
+# 2026-11-15 21:19:51 (hora de Colombia)
+PS> kubectl get svc,endpointslices -n $NS -o wide
+NAME                       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE   SELECTOR
+service/grafana            NodePort    10.96.240.17    <none>        3000:30300/TCP   60m   app=grafana
+service/postgres           ClusterIP   None            <none>        5432/TCP         60m   app=postgres
+service/postgres-externo   NodePort    10.96.141.235   <none>        5432:30432/TCP   60m   app=postgres
+
+NAME                                                    ADDRESSTYPE   PORTS   ENDPOINTS     AGE
+endpointslice.discovery.k8s.io/grafana-ttnmp            IPv4          3000    10.244.0.54   60m
+endpointslice.discovery.k8s.io/postgres-49dq7           IPv4          5432    10.244.0.52   60m
+endpointslice.discovery.k8s.io/postgres-externo-wl6qn   IPv4          5432    10.244.0.52   60m
+
+PS> kubectl describe svc postgres-externo -n $NS
+Name:                     postgres-externo
+Namespace:                microrred
+Labels:                   app.kubernetes.io/part-of=microrred-bi
+Annotations:              <none>
+Selector:                 app=postgres
+Type:                     NodePort
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.96.141.235
+IPs:                      10.96.141.235
+Port:                     pg  5432/TCP
+TargetPort:               pg/TCP
+NodePort:                 pg  30432/TCP
+Endpoints:                10.244.0.52:5432
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Internal Traffic Policy:  Cluster
+Events:                   <none>
+
+PS> kubectl describe svc grafana -n $NS
+Name:                     grafana
+Namespace:                microrred
+Labels:                   app.kubernetes.io/part-of=microrred-bi
+Annotations:              <none>
+Selector:                 app=grafana
+Type:                     NodePort
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.96.240.17
+IPs:                      10.96.240.17
+Port:                     http  3000/TCP
+TargetPort:               http/TCP
+NodePort:                 http  30300/TCP
+Endpoints:                10.244.0.54:3000
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Internal Traffic Policy:  Cluster
+Events:                   <none>
+
+PS> kubectl exec -n $NS postgres-0 -- getent hosts postgres.microrred.svc.cluster.local grafana.microrred.svc.cluster.local
+10.244.0.52     postgres.microrred.svc.cluster.local
+10.96.240.17    grafana.microrred.svc.cluster.local
+
