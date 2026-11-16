@@ -137,5 +137,5 @@ En esta práctica se usó Grafana en el puerto **3001** y PostgreSQL en el **554
 
 ## Autoría
 
-Trabajo desarrollado de forma individual por **Cristian López Cardona**: consulta (Parte A),
+Trabajo desarrollado de forma grupal por **Cristian López Cardona - Sebastìan Pineda àlvarez**: consulta (Parte A),
 flujo ETL y carga en PostgreSQL, dashboard y alerta en Grafana, informe en Power BI y repositorio.
