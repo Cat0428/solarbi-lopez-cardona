@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Autor** | Cristian López Cardona | Sebastián Pineda |
+| **Autores** | Cristian López Cardona · Sebastián Pineda Álvarez |
 | **Curso** | Inteligencia de Negocios · Grupo 01 · 2026-II |
 | **Docente** | Ramiro Grisales Montoya |
 | **Institución** | Institución Universitaria Pascual Bravo · Departamento de Sistemas Digitales |
@@ -137,5 +137,5 @@ En esta práctica se usó Grafana en el puerto **3001** y PostgreSQL en el **554
 
 ## Autoría
 
-Trabajo desarrollado de forma grupal por **Cristian López Cardona - Sebastìan Pineda àlvarez**: consulta (Parte A),
+Trabajo desarrollado de forma grupal por **Cristian López Cardona - Sebastián Pineda Álvarez**: consulta (Parte A),
 flujo ETL y carga en PostgreSQL, dashboard y alerta en Grafana, informe en Power BI y repositorio.
