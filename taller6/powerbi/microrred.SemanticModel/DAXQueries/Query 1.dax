@@ -1,0 +1,10 @@
+// Inteligencia de tiempo: acumulado y comparativo frente al mes anterior
+EVALUATE
+SUMMARIZECOLUMNS (
+    dim_fecha[anio_mes],
+    "Red (kWh)", [Energía de la red (kWh)],
+    "Red por día (kWh/día)", [Red por día con datos (kWh/día)],
+    "Variación vs mes anterior", [Variación red/día vs mes anterior %],
+    "Costo acumulado (COP)", [Costo de la red acumulado (COP)]
+)
+ORDER BY dim_fecha[anio_mes]

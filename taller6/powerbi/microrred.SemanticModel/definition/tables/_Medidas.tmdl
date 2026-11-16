@@ -1,0 +1,272 @@
+/// Tabla contenedora de las medidas DAX del informe.
+table _Medidas
+	lineageTag: a726ad53-dcf9-4404-97fb-103fb7cb3345
+
+	/// Energía entregada por el arreglo FV (integración P·Δt).
+	measure 'Energía solar (kWh)' = SUM ( fact_energia_hora[energia_pv_kwh] )
+		formatString: #,0.0
+		displayFolder: 1 Energía
+		lineageTag: 05fc2a5d-e376-4b24-afe2-1fd2803f786c
+
+	/// Energía consumida por la carga.
+	measure 'Energía a la carga (kWh)' = SUM ( fact_energia_hora[energia_carga_kwh] )
+		formatString: #,0.0
+		displayFolder: 1 Energía
+		lineageTag: 71e1fd71-1274-4435-b6d0-e451853227c2
+
+	/// Energía importada de la red pública.
+	measure 'Energía de la red (kWh)' = SUM ( fact_energia_hora[energia_red_kwh] )
+		formatString: #,0.0
+		displayFolder: 1 Energía
+		lineageTag: 8d4c0855-901b-4e01-a26c-6f4da53de1a1
+
+	/// Energía entregada por la batería.
+	measure 'Descarga de batería (kWh)' = SUM ( fact_energia_hora[energia_bat_desc_kwh] )
+		formatString: #,0.0
+		displayFolder: 1 Energía
+		lineageTag: 93cfc279-7c87-427c-80f7-4fd3c1037334
+
+	/// Energía que entró a la batería.
+	measure 'Carga de batería (kWh)' = SUM ( fact_energia_hora[energia_bat_carga_kwh] )
+		formatString: #,0.0
+		displayFolder: 1 Energía
+		lineageTag: e2a31bb1-9d4a-493f-a727-2fdcbafd1734
+
+	/// Solar / (solar + red). Meta ≥ 50 %.
+	measure 'Fracción solar %' = DIVIDE ( [Energía solar (kWh)], [Energía solar (kWh)] + [Energía de la red (kWh)] )
+		formatString: 0.0%
+		displayFolder: 2 KPI
+		lineageTag: cc35664a-ff47-48e1-88a7-02d020d1bc60
+
+	/// Red / consumo. Puede superar 100 % (la red también carga la batería y cubre pérdidas). Meta ≤ 50 %.
+	measure 'Dependencia de la red %' = DIVIDE ( [Energía de la red (kWh)], [Energía a la carga (kWh)] )
+		formatString: 0.0%
+		displayFolder: 2 KPI
+		lineageTag: 4513af41-5d84-4c61-9dc5-6c0a120cbd60
+
+	/// max(0, 1 − dependencia de la red).
+	measure 'Autosuficiencia %' = MAX ( 0, 1 - [Dependencia de la red %] )
+		formatString: 0.0%
+		displayFolder: 2 KPI
+		lineageTag: abff5277-4598-4f8e-a60c-b612a6aef7e5
+
+	/// Días con al menos un minuto de datos.
+	measure 'Días con datos' = CALCULATE ( DISTINCTCOUNT ( fact_energia_hora[fecha_key] ), fact_energia_hora[minutos_con_datos] > 0 )
+		formatString: #,0
+		displayFolder: 2 KPI
+		lineageTag: 9015e406-0761-446f-bf16-466f0d196c61
+
+	/// Minutos con SOC ≥ 98 % entre 06:00 y 17:59: energía solar que se recorta. Meta ≤ 20 %.
+	measure 'Batería llena en horas de sol %' =
+			DIVIDE (
+			    CALCULATE ( SUM ( fact_energia_hora[minutos_soc_lleno] ), dim_hora[es_hora_solar] = TRUE () ),
+			    CALCULATE ( SUM ( fact_energia_hora[minutos_con_datos] ), dim_hora[es_hora_solar] = TRUE () )
+			)
+		formatString: 0.0%
+		displayFolder: 2 KPI
+		lineageTag: 19071613-73b7-4be7-8515-88f59a0bebf3
+
+	/// Descarga / capacidad (10,24 kWh) / días con datos, promedio por inversor. Meta 0,5–1.
+	measure 'Ciclos de batería por día' =
+			AVERAGEX (
+			    VALUES ( dim_inversor[inversor_id] ),
+			    DIVIDE (
+			        CALCULATE ( [Descarga de batería (kWh)] ),
+			        CALCULATE ( MAX ( dim_inversor[bateria_kwh] ) ) * CALCULATE ( [Días con datos] )
+			    )
+			)
+		formatString: 0.00
+		displayFolder: 2 KPI
+		lineageTag: 6ade9619-c9c5-45ae-bc32-9204a0523351
+
+	/// (entradas − carga de batería − consumo) / entradas. Meta ≤ 10 %.
+	measure 'Pérdidas de conversión %' =
+			VAR Entradas = [Energía solar (kWh)] + [Energía de la red (kWh)] + [Descarga de batería (kWh)]
+			RETURN DIVIDE ( Entradas - [Carga de batería (kWh)] - [Energía a la carga (kWh)], Entradas )
+		formatString: 0.0%
+		displayFolder: 2 KPI
+		lineageTag: 74d8fb98-b6ec-4119-98d4-694d03146398
+
+	/// Energía solar / (kWp × días con datos). Referencia Shenzhen ≈ 3,5.
+	measure 'Rendimiento (kWh/kWp·día)' =
+			DIVIDE (
+			    [Energía solar (kWh)],
+			    SUMX (
+			        VALUES ( dim_inversor[inversor_id] ),
+			        CALCULATE ( MAX ( dim_inversor[capacidad_pv_kwp] ) ) * CALCULATE ( [Días con datos] )
+			    )
+			)
+		formatString: 0.00
+		displayFolder: 2 KPI
+		lineageTag: acd78722-d022-4236-a21f-701e15a7f7ed
+
+	/// Minutos con datos / minutos del periodo. Meta ≥ 98 %.
+	measure 'Disponibilidad del registro %' = DIVIDE ( SUM ( fact_energia_hora[minutos_con_datos] ), COUNTROWS ( fact_energia_hora ) * 60 )
+		formatString: 0.0%
+		displayFolder: 3 Calidad
+		lineageTag: 35414139-efad-4550-8dbf-d63641462d6d
+
+	/// Lecturas válidas / lecturas recibidas. Meta ≥ 99 %.
+	measure 'Datos válidos %' = DIVIDE ( SUM ( fact_energia_hora[lecturas_validas] ), SUM ( fact_energia_hora[lecturas_recibidas] ) )
+		formatString: 0.00%
+		displayFolder: 3 Calidad
+		lineageTag: 4cf5900f-0830-4c4d-b075-e16537a4ca12
+
+	/// Filas eliminadas, corregidas o marcadas por las reglas del ETL (última corrida).
+	measure 'Filas afectadas por reglas' = SUM ( 'Reglas de calidad'[filas_afectadas] )
+		formatString: #,0
+		displayFolder: 3 Calidad
+		lineageTag: f2114e22-e487-454f-ae96-9cd55345de64
+
+	/// Δ del contador acumulado del inversor.
+	measure 'Energía según contador (kWh)' = SUM ( 'Conciliación contador'[energia_contador_kwh] )
+		formatString: #,0.0
+		displayFolder: 3 Calidad
+		lineageTag: c612694c-ae3d-47db-9267-97aeb7ba8c14
+
+	/// Energía integrada por el ETL en la misma ventana.
+	measure 'Energía integrada ETL (kWh)' = SUM ( 'Conciliación contador'[energia_integrada_kwh] )
+		formatString: #,0.0
+		displayFolder: 3 Calidad
+		lineageTag: b06cbad3-4863-45c1-ac2d-6ed7997366ce
+
+	/// Conciliación contra la fuente.
+	measure 'Diferencia contador vs ETL %' = DIVIDE ( [Energía integrada ETL (kWh)] - [Energía según contador (kWh)], [Energía según contador (kWh)] )
+		formatString: 0.0%
+		displayFolder: 3 Calidad
+		lineageTag: 6a7ce564-e864-4a8d-b3f7-522fc1e99c54
+
+	/// Número de eventos (detectados + reportados).
+	measure Eventos = SUM ( fact_evento[cantidad] )
+		formatString: #,0
+		displayFolder: 4 Eventos y cargas
+		lineageTag: c1f7a705-593b-4322-b2c1-9589b93e8a13
+
+	/// Duración total de los eventos.
+	measure 'Horas en evento' = DIVIDE ( SUM ( fact_evento[duracion_min] ), 60 )
+		formatString: #,0.0
+		displayFolder: 4 Eventos y cargas
+		lineageTag: 541ff3d4-1928-4beb-972c-4ef76556eef2
+
+	/// Batería baja, salida apagada, corte de red.
+	measure 'Eventos críticos' = CALCULATE ( [Eventos], dim_tipo_evento[severidad] = "Crítica" )
+		formatString: #,0
+		displayFolder: 4 Eventos y cargas
+		lineageTag: 620d9eb8-01e4-4fad-9a51-c392a6e9fea6
+
+	/// Horas con la red pública ausente (la planta se sostuvo sola).
+	measure 'Horas de operación aislada' = CALCULATE ( [Horas en evento], dim_tipo_evento[codigo] = "CORTE_RED" )
+		formatString: #,0.0
+		displayFolder: 4 Eventos y cargas
+		lineageTag: 5cb230b7-6bbc-4cb0-988d-de3b69538043
+
+	/// Registros distintos de fault_history.
+	measure 'Fallas reportadas por el inversor' = CALCULATE ( [Eventos], dim_tipo_evento[categoria] = "Reportado por el inversor" )
+		formatString: #,0
+		displayFolder: 4 Eventos y cargas
+		lineageTag: 002b1d59-244a-4b41-a68e-21862f90eaf9
+
+	/// Registros de contexto (tareas, eventos de Windows, calendario).
+	measure 'Tareas registradas' = SUM ( fact_actividad[cantidad] )
+		formatString: #,0
+		displayFolder: 4 Eventos y cargas
+		lineageTag: 7a6a9287-c28c-42fb-9628-01bcc84e5188
+
+	/// Potencia media de la carga mientras duraron las tareas.
+	measure 'Carga promedio durante tareas (W)' = AVERAGE ( fact_actividad[carga_prom_w] )
+		formatString: #,0
+		displayFolder: 4 Eventos y cargas
+		lineageTag: 0db2e42f-5f85-4a61-9d3b-af1f13f345e7
+
+	/// Valor del parámetro what-if (930 por defecto).
+	measure 'Tarifa seleccionada (COP/kWh)' = SELECTEDVALUE ( Tarifa[Tarifa COP/kWh], 930 )
+		formatString: #,0
+		displayFolder: 5 Económico
+		lineageTag: 2ef2650a-3e87-4216-8ef2-7ff76654d01b
+
+	/// Energía importada × tarifa.
+	measure 'Costo de la red (COP)' = [Energía de la red (kWh)] * [Tarifa seleccionada (COP/kWh)]
+		formatString: $ #,0
+		displayFolder: 5 Económico
+		lineageTag: 2ea57910-c71b-4b2c-80d1-6bfba92c57bf
+
+	/// Energía solar × tarifa (lo que no se compró).
+	measure 'Ahorro por energía solar (COP)' = [Energía solar (kWh)] * [Tarifa seleccionada (COP/kWh)]
+		formatString: $ #,0
+		displayFolder: 5 Económico
+		lineageTag: 384c5b27-d45b-4f8c-ade4-89e6db4fb38d
+
+	/// Misma medida, mes anterior.
+	measure 'Energía de la red mes anterior (kWh)' = CALCULATE ( [Energía de la red (kWh)], DATEADD ( dim_fecha[fecha], -1, MONTH ) )
+		formatString: #,0.0
+		displayFolder: 6 Tiempo y narrativa
+		lineageTag: 1b0b69a8-dcfb-48e2-bcaa-7ae4331d7cd3
+
+	/// Comparativo entre periodos.
+	measure 'Variación red vs mes anterior %' = DIVIDE ( [Energía de la red (kWh)] - [Energía de la red mes anterior (kWh)], [Energía de la red mes anterior (kWh)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 6 Tiempo y narrativa
+		lineageTag: d582c845-864a-4794-9142-75539cdb132d
+
+	/// Acumulado año a la fecha.
+	measure 'Costo de la red acumulado del año (COP)' = TOTALYTD ( [Costo de la red (COP)], dim_fecha[fecha] )
+		formatString: $ #,0
+		displayFolder: 6 Tiempo y narrativa
+		lineageTag: fd11e136-f993-4736-bba4-8c35a46485f9
+
+	/// Texto dinámico para la narrativa (responde a filtros).
+	measure 'Hallazgo principal' =
+			VAR Dep = [Dependencia de la red %]
+			VAR Llena = [Batería llena en horas de sol %]
+			VAR Ciclos = [Ciclos de batería por día]
+			RETURN
+			    "La red cubrió el " & FORMAT ( Dep, "0%" ) & " del consumo mientras la batería pasó llena el "
+			        & FORMAT ( Llena, "0%" ) & " de las horas de sol y trabajó " & SUBSTITUTE ( FORMAT ( Ciclos, "0.00" ), ".", "," )
+			        & " ciclos/día (una LiFePO4 tolera 1). Costo de la red: " & "$ " & SUBSTITUTE ( FORMAT ( [Costo de la red (COP)], "#,0" ), ",", "." ) & "."
+		displayFolder: 6 Tiempo y narrativa
+		lineageTag: f6791d96-d3ee-4b1e-96e0-4c29564e6e58
+
+	/// Costo de la red acumulado desde el inicio del registro.
+	measure 'Costo de la red acumulado (COP)' =
+			VAR UltimaFecha = MAX ( dim_fecha[fecha] )
+			RETURN
+			    CALCULATE ( [Costo de la red (COP)], FILTER ( ALL ( dim_fecha ), dim_fecha[fecha] <= UltimaFecha ) )
+		formatString: $ #,0
+		displayFolder: 6 Tiempo y narrativa
+		lineageTag: 61bd8b20-a086-4299-92a6-06b6e1c5fbbc
+
+	/// Energía de red por cada 24 h efectivamente medidas (minutos con datos / 1440): los huecos no distorsionan la comparación entre meses.
+	measure 'Red por día con datos (kWh/día)' = DIVIDE ( [Energía de la red (kWh)], SUM ( fact_energia_hora[minutos_con_datos] ) / 1440 )
+		formatString: #,0.00
+		displayFolder: 6 Tiempo y narrativa
+		lineageTag: 33200ef7-9444-4485-b1da-ab63ed42ea76
+
+	/// Comparativo entre periodos normalizado por días con datos.
+	measure 'Variación red/día vs mes anterior %' =
+			VAR Actual = [Red por día con datos (kWh/día)]
+			VAR Anterior = CALCULATE ( [Red por día con datos (kWh/día)], DATEADD ( dim_fecha[fecha], -1, MONTH ) )
+			RETURN DIVIDE ( Actual - Anterior, Anterior )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 6 Tiempo y narrativa
+		lineageTag: a7054548-6be3-4608-9f61-66675c7835ee
+
+	/// Proporción de comparaciones mes-inversor-variable donde el ETL y el contador del inversor difieren 3 % o menos.
+	measure 'Meses que concilian (±3 %) %' =
+			DIVIDE (
+			    COUNTROWS ( FILTER ( 'Conciliación contador', ABS ( 'Conciliación contador'[diferencia_pct] ) <= 3 ) ),
+			    COUNTROWS ( 'Conciliación contador' )
+			)
+		formatString: 0%
+		displayFolder: 3 Calidad
+		lineageTag: fefb4d88-06ea-477a-9d43-24733e262e18
+
+	column Medidas
+		isHidden
+		lineageTag: 29e8a289-3055-47d8-802c-96e2b2ca2601
+		isNameInferred
+		sourceColumn: [Medidas]
+
+	partition _Medidas = calculated
+		mode: import
+		source = ROW("Medidas", BLANK())
+

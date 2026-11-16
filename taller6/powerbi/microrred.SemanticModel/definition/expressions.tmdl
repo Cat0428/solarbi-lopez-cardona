@@ -1,0 +1,12 @@
+/// Host:puerto de PostgreSQL. Clúster kind o docker compose: 127.0.0.1:55432
+expression Servidor = "127.0.0.1:55432" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 4c4324d6-4a66-49d5-935a-8ced0907c25f
+
+	annotation PBI_ResultType = Text
+
+/// Base de datos del Taller 6 (POSTGRES_DB en credenciales.env)
+expression BaseDatos = "microrred" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 3a563652-0baa-4fd9-a319-6378ba946418
+
+	annotation PBI_ResultType = Text
+

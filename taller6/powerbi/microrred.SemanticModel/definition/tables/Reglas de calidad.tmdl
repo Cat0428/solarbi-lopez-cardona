@@ -1,0 +1,57 @@
+/// Conteos antes/después de cada regla en la última corrida del ETL (ops.etl_regla).
+table 'Reglas de calidad'
+	lineageTag: cb3ee122-8764-428a-8c0a-dbb3d75c1235
+
+	column ejecucion_id
+		dataType: int64
+		isHidden
+		lineageTag: 7115560a-6ae0-47c2-8ce5-02f5c4944af3
+		sourceColumn: ejecucion_id
+
+	column orden
+		dataType: int64
+		lineageTag: 7683207d-aa5f-4da6-8695-d74f7300c560
+		summarizeBy: none
+		sourceColumn: orden
+
+	column regla
+		dataType: string
+		lineageTag: 9a3b2c6a-c726-48a8-84a8-09173e2b5b10
+		sourceColumn: regla
+
+	column descripcion
+		dataType: string
+		lineageTag: b3fe5c0d-e288-4b83-a555-4fd8a52467aa
+		sourceColumn: descripcion
+
+	column accion
+		dataType: string
+		lineageTag: 393b2672-3115-4abd-91ba-31a864dbdd78
+		sourceColumn: accion
+
+	column filas_antes
+		dataType: int64
+		lineageTag: 00296380-2512-4948-b8b5-714297b5745d
+		sourceColumn: filas_antes
+
+	column filas_despues
+		dataType: int64
+		lineageTag: bf4a6818-2352-4ab6-99c9-29d7ec421ecb
+		sourceColumn: filas_despues
+
+	column filas_afectadas
+		dataType: int64
+		lineageTag: 068280cc-01ce-4e19-9852-08c8d2f275a4
+		sourceColumn: filas_afectadas
+
+	partition 'Reglas de calidad' = m
+		mode: import
+		source =
+				let
+				    Origen = PostgreSQL.Database(Servidor, BaseDatos),
+				    Datos = Origen{[Schema="ops", Item="etl_regla"]}[Data],
+				    Ultima = List.Max(Datos[ejecucion_id]),
+				    Resultado = Table.SelectRows(Datos, each [ejecucion_id] = Ultima)
+				in
+				    Resultado
+

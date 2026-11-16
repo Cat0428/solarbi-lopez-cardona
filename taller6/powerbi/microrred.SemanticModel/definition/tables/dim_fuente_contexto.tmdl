@@ -1,0 +1,35 @@
+/// Origen de los registros de contexto.
+table dim_fuente_contexto
+	lineageTag: dcaac65e-cee0-456a-b9e6-3c15dd187049
+
+	column fuente_key
+		dataType: int64
+		isHidden
+		lineageTag: 10b5b9c0-0b0e-428f-b85e-fdf6912f3fbf
+		sourceColumn: fuente_key
+
+	column fuente
+		dataType: string
+		lineageTag: d2a90a89-bd59-4b59-8de5-82390968f457
+		sourceColumn: fuente
+
+	column tipo
+		dataType: string
+		lineageTag: f0b41176-967d-4211-9081-f57f72567727
+		sourceColumn: tipo
+
+	column dispositivo
+		dataType: string
+		lineageTag: 43bada04-1151-4b67-9462-5f2dad0c3ef3
+		sourceColumn: dispositivo
+
+	partition dim_fuente_contexto = m
+		mode: import
+		source =
+				let
+				    Origen = PostgreSQL.Database(Servidor, BaseDatos),
+				    Datos = Origen{[Schema="gold", Item="dim_fuente_contexto"]}[Data],
+				    Resultado = Datos
+				in
+				    Resultado
+

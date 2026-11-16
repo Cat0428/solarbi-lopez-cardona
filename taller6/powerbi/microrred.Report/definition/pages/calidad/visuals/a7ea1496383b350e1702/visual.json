@@ -1,0 +1,174 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "a7ea1496383b350e1702",
+  "position": {
+    "x": 650,
+    "y": 202,
+    "z": 21,
+    "width": 610,
+    "height": 508,
+    "tabOrder": 21
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Conciliación contador"
+                    }
+                  },
+                  "Property": "mes"
+                }
+              },
+              "queryRef": "Conciliación contador.mes",
+              "nativeQueryRef": "Mes",
+              "displayName": "Mes"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Conciliación contador"
+                    }
+                  },
+                  "Property": "inversor_id"
+                }
+              },
+              "queryRef": "Conciliación contador.inversor_id",
+              "nativeQueryRef": "Inv.",
+              "displayName": "Inv."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Conciliación contador"
+                    }
+                  },
+                  "Property": "variable"
+                }
+              },
+              "queryRef": "Conciliación contador.variable",
+              "nativeQueryRef": "Variable",
+              "displayName": "Variable"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Conciliación contador"
+                    }
+                  },
+                  "Property": "energia_contador_kwh"
+                }
+              },
+              "queryRef": "Conciliación contador.energia_contador_kwh",
+              "nativeQueryRef": "Contador kWh",
+              "displayName": "Contador kWh"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Conciliación contador"
+                    }
+                  },
+                  "Property": "energia_integrada_kwh"
+                }
+              },
+              "queryRef": "Conciliación contador.energia_integrada_kwh",
+              "nativeQueryRef": "ETL kWh",
+              "displayName": "ETL kWh"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Conciliación contador"
+                    }
+                  },
+                  "Property": "diferencia_pct"
+                }
+              },
+              "queryRef": "Conciliación contador.diferencia_pct",
+              "nativeQueryRef": "Dif. %",
+              "displayName": "Dif. %"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Conciliación contador"
+                  }
+                },
+                "Property": "mes"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Conciliación con el contador del inversor'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

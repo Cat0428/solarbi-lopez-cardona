@@ -1,0 +1,77 @@
+/// Grano: un registro de contexto, con la carga medida mientras duró.
+table fact_actividad
+	lineageTag: 7265563d-c094-4478-acc1-12202c78dcbc
+
+	column contexto_id
+		dataType: int64
+		lineageTag: 67dd3016-7d9e-4675-91c8-805b81425826
+		sourceColumn: contexto_id
+
+	column fecha_key
+		dataType: int64
+		isHidden
+		lineageTag: b05c8691-1aa4-49bd-81a8-506f32dc76fc
+		summarizeBy: none
+		sourceColumn: fecha_key
+
+	column hora_key
+		dataType: int64
+		isHidden
+		lineageTag: 930f751a-c010-4a9a-877a-f46701bb8321
+		summarizeBy: none
+		sourceColumn: hora_key
+
+	column inversor_key
+		dataType: int64
+		isHidden
+		lineageTag: ba8c2af7-0855-409b-b91f-d2c5621e8b84
+		summarizeBy: none
+		sourceColumn: inversor_key
+
+	column fuente_key
+		dataType: int64
+		isHidden
+		lineageTag: 22beee8e-0e50-4230-b550-319824758740
+		summarizeBy: none
+		sourceColumn: fuente_key
+
+	column tipo_tarea
+		dataType: string
+		lineageTag: a4f5141d-8424-49a4-b18f-22038f3ed62d
+		sourceColumn: tipo_tarea
+
+	column esfuerzo_estimado
+		dataType: string
+		lineageTag: 831a9d26-876f-4f3c-8998-230d29d030a9
+		sourceColumn: esfuerzo_estimado
+
+	column duracion_min
+		dataType: double
+		lineageTag: 6b4a3e35-0a8f-4fdb-b62b-10edf3a8bf37
+		sourceColumn: duracion_min
+
+	column carga_prom_w
+		dataType: double
+		lineageTag: 773c3d51-420d-4503-a80f-ed6b15d38eca
+		sourceColumn: carga_prom_w
+
+	column energia_carga_kwh
+		dataType: double
+		lineageTag: 0b76cec7-bf05-4066-af49-c00b5734e797
+		sourceColumn: energia_carga_kwh
+
+	column cantidad
+		dataType: int64
+		lineageTag: 34041b72-a3ac-47af-b448-62bba2ddee09
+		sourceColumn: cantidad
+
+	partition fact_actividad = m
+		mode: import
+		source =
+				let
+				    Origen = PostgreSQL.Database(Servidor, BaseDatos),
+				    Datos = Origen{[Schema="gold", Item="fact_actividad"]}[Data],
+				    Resultado = Datos
+				in
+				    Resultado
+

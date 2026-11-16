@@ -1,0 +1,201 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "9901f0fcd7fe4c39e600",
+  "position": {
+    "x": 20,
+    "y": 392,
+    "z": 12,
+    "width": 1240,
+    "height": 318,
+    "tabOrder": 12
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_inversor"
+                    }
+                  },
+                  "Property": "nombre"
+                }
+              },
+              "queryRef": "dim_inversor.nombre",
+              "nativeQueryRef": "Inversor",
+              "displayName": "Inversor"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_inversor"
+                    }
+                  },
+                  "Property": "prioridad_salida_texto"
+                }
+              },
+              "queryRef": "dim_inversor.prioridad_salida_texto",
+              "nativeQueryRef": "Prioridad de salida",
+              "displayName": "Prioridad de salida"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_inversor"
+                    }
+                  },
+                  "Property": "prioridad_carga_texto"
+                }
+              },
+              "queryRef": "dim_inversor.prioridad_carga_texto",
+              "nativeQueryRef": "Prioridad de carga",
+              "displayName": "Prioridad de carga"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_inversor"
+                    }
+                  },
+                  "Property": "vigente_desde"
+                }
+              },
+              "queryRef": "dim_inversor.vigente_desde",
+              "nativeQueryRef": "Desde",
+              "displayName": "Desde"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_inversor"
+                    }
+                  },
+                  "Property": "vigente_hasta"
+                }
+              },
+              "queryRef": "dim_inversor.vigente_hasta",
+              "nativeQueryRef": "Hasta",
+              "displayName": "Hasta"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Días con datos"
+                }
+              },
+              "queryRef": "_Medidas.Días con datos",
+              "nativeQueryRef": "Días",
+              "displayName": "Días"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Dependencia de la red %"
+                }
+              },
+              "queryRef": "_Medidas.Dependencia de la red %",
+              "nativeQueryRef": "Red/consumo",
+              "displayName": "Red/consumo"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Ciclos de batería por día"
+                }
+              },
+              "queryRef": "_Medidas.Ciclos de batería por día",
+              "nativeQueryRef": "Ciclos/día",
+              "displayName": "Ciclos/día"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Fracción solar %"
+                }
+              },
+              "queryRef": "_Medidas.Fracción solar %",
+              "nativeQueryRef": "Fracción solar",
+              "displayName": "Fracción solar"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Versiones de dim_inversor y su desempeño'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

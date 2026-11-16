@@ -1,0 +1,14 @@
+/// Parámetro what-if: tarifa de energía en COP/kWh (930 = estimado estrato 4 EPM; 1 116 ≈ comercial).
+table Tarifa
+	lineageTag: 8a985046-9549-4fb9-b94a-4bf64c705fd4
+
+	column 'Tarifa COP/kWh'
+		formatString: #,0
+		lineageTag: 783c762a-6afc-4883-9c8d-bf0c1f29f5b8
+		summarizeBy: none
+		sourceColumn: [Value]
+
+	partition Tarifa = calculated
+		mode: import
+		source = GENERATESERIES(700, 1300, 10)
+

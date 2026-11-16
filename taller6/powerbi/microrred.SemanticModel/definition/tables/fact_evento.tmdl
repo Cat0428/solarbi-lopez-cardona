@@ -1,0 +1,74 @@
+/// Grano: un evento (intervalo detectado o falla reportada). Horas en hora local del sitio.
+table fact_evento
+	lineageTag: cf6f146e-6385-4e6d-a3e9-b8bf6f57629f
+
+	column evento_id
+		dataType: int64
+		lineageTag: c1c3ded9-b699-45b5-9219-c4c717f32b9d
+		sourceColumn: evento_id
+
+	column fecha_key
+		dataType: int64
+		isHidden
+		lineageTag: 9c698b44-3365-41a3-9d56-5aefd3a7bd52
+		summarizeBy: none
+		sourceColumn: fecha_key
+
+	column hora_key
+		dataType: int64
+		isHidden
+		lineageTag: 4f74e655-3201-4b0d-98ea-ce921991a336
+		summarizeBy: none
+		sourceColumn: hora_key
+
+	column inversor_key
+		dataType: int64
+		isHidden
+		lineageTag: 79d6217f-443d-4695-b297-7ddb743ff75c
+		summarizeBy: none
+		sourceColumn: inversor_key
+
+	column tipo_evento_key
+		dataType: int64
+		isHidden
+		lineageTag: ec4b46ef-888d-47e5-baef-8f4b601d30e5
+		summarizeBy: none
+		sourceColumn: tipo_evento_key
+
+	column inicio_ts
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: f39f3051-d18a-4227-8966-da6e11c62260
+		sourceColumn: inicio_ts
+
+	column fin_ts
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		lineageTag: dd296253-3eb4-4a58-954c-01f644661979
+		sourceColumn: fin_ts
+
+	column duracion_min
+		dataType: double
+		lineageTag: 49879507-43e8-45ef-b17f-aa1be1887de5
+		sourceColumn: duracion_min
+
+	column valor_extremo
+		dataType: double
+		lineageTag: 51e3726f-7a18-40f9-ba8d-be57cd99e559
+		sourceColumn: valor_extremo
+
+	column cantidad
+		dataType: int64
+		lineageTag: 836dad14-13d7-4a58-8a22-8e2a6ccdf396
+		sourceColumn: cantidad
+
+	partition fact_evento = m
+		mode: import
+		source =
+				let
+				    Origen = PostgreSQL.Database(Servidor, BaseDatos),
+				    Datos = Origen{[Schema="gold", Item="fact_evento"]}[Data],
+				    Resultado = Table.TransformColumns(Datos, {{"inicio_ts", each DateTimeZone.RemoveZone(DateTimeZone.SwitchZone(_, 8)), type datetime}, {"fin_ts", each DateTimeZone.RemoveZone(DateTimeZone.SwitchZone(_, 8)), type datetime}})
+				in
+				    Resultado
+

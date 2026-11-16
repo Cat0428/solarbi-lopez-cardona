@@ -1,0 +1,30 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: es-419
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["MCP-PBIModeling","DevMode","DaxQueryView_Desktop"]
+
+annotation PBI_QueryOrder = ["dim_fecha","dim_hora","dim_inversor","dim_tipo_evento","dim_fuente_contexto","fact_energia_hora","fact_evento","fact_actividad","Reglas de calidad","Conciliación contador","Servidor","BaseDatos"]
+
+ref table dim_fecha
+ref table dim_hora
+ref table dim_inversor
+ref table dim_tipo_evento
+ref table dim_fuente_contexto
+ref table fact_energia_hora
+ref table fact_evento
+ref table fact_actividad
+ref table 'Reglas de calidad'
+ref table 'Conciliación contador'
+ref table Tarifa
+ref table _Medidas
+
+ref cultureInfo en-US
+

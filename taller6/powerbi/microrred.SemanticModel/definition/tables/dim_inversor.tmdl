@@ -1,0 +1,121 @@
+/// SCD tipo 2: una fila por versión de configuración del inversor (tabla settings).
+table dim_inversor
+	lineageTag: 17eccbdb-381b-45f9-ab4f-c845c4123c88
+
+	column inversor_key
+		dataType: int64
+		isHidden
+		lineageTag: 76cdd117-dbf7-4123-b755-6da9ade9bf46
+		sourceColumn: inversor_key
+
+	column inversor_id
+		dataType: int64
+		lineageTag: ab6ba2c9-073b-4db0-9ee9-010ebf38c8fa
+		summarizeBy: none
+		sourceColumn: inversor_id
+
+	column nombre
+		dataType: string
+		lineageTag: 315ecc31-f0f8-4bc3-abbf-0f02af8e3c93
+		sourceColumn: nombre
+
+	column modelo
+		dataType: string
+		lineageTag: e90ee911-208e-4de2-bd42-2a49fde4e936
+		sourceColumn: modelo
+
+	column potencia_nominal_kw
+		dataType: double
+		lineageTag: 08e97229-c6cd-4945-9b5b-c9ed39163b0d
+		sourceColumn: potencia_nominal_kw
+
+	column capacidad_pv_kwp
+		dataType: double
+		lineageTag: 4e962af0-de19-4679-ac17-6209522836b6
+		sourceColumn: capacidad_pv_kwp
+
+	column bateria_kwh
+		dataType: double
+		lineageTag: cb8ff630-f34f-4a22-8952-2d80bcaf0d95
+		sourceColumn: bateria_kwh
+
+	column carga_principal
+		dataType: string
+		lineageTag: b8d7aa70-de0f-4671-a207-aef1f4aa317f
+		sourceColumn: carga_principal
+
+	column prioridad_salida
+		dataType: int64
+		lineageTag: a8e31a33-34d3-41ab-9d1a-e091f0152a36
+		summarizeBy: none
+		sourceColumn: prioridad_salida
+
+	column prioridad_salida_texto
+		dataType: string
+		lineageTag: 095b5a0b-c19d-48d3-b927-989009a168c3
+		sourceColumn: prioridad_salida_texto
+
+	column prioridad_carga
+		dataType: int64
+		lineageTag: fcf1e423-a235-4dec-af8e-ba6aed23d811
+		summarizeBy: none
+		sourceColumn: prioridad_carga
+
+	column prioridad_carga_texto
+		dataType: string
+		lineageTag: 5eabee66-d2e5-4ca4-8d24-55944ddc2ea4
+		sourceColumn: prioridad_carga_texto
+
+	column soc_corte_pct
+		dataType: int64
+		lineageTag: c71a5dba-a080-4877-b575-3b3f2e5e6993
+		sourceColumn: soc_corte_pct
+
+	column soc_paso_a_red_pct
+		dataType: int64
+		lineageTag: 95f3d399-fb3b-4f3a-be72-d8f92c66df8e
+		sourceColumn: soc_paso_a_red_pct
+
+	column vigente_desde
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 0975879e-3194-4527-b2c4-887d939453a3
+		sourceColumn: vigente_desde
+
+	column vigente_hasta
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 2e13644b-edfc-46d6-a200-7790dc977749
+		sourceColumn: vigente_hasta
+
+	column es_actual
+		dataType: boolean
+		lineageTag: c72bd2ca-bf4e-46ce-be22-db401375788f
+		sourceColumn: es_actual
+
+	column version_config
+		dataType: string
+		lineageTag: 0a98ead7-80cc-4434-b059-aeb8d351d1e3
+		sourceColumn: version_config
+
+	hierarchy 'Inversor y configuración'
+		lineageTag: 1396a610-05fb-475e-9f91-888ed43804e5
+
+		level Inversor
+			lineageTag: 833ba980-d8dd-4845-a12a-a975bf378faa
+			column: nombre
+
+		level Versión
+			lineageTag: 9ce32999-40be-4f5c-9eb8-8ee3ee3676d4
+			column: version_config
+
+	partition dim_inversor = m
+		mode: import
+		source =
+				let
+				    Origen = PostgreSQL.Database(Servidor, BaseDatos),
+				    Datos = Origen{[Schema="gold", Item="dim_inversor"]}[Data],
+				    Resultado = Table.AddColumn(Datos, "version_config", each [nombre] & " · salida " & Text.From([prioridad_salida]) & " / carga " & Text.From([prioridad_carga]) & " (desde " & Date.ToText([vigente_desde], "yyyy-MM-dd") & ")", type text)
+				in
+				    Resultado
+

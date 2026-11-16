@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "microrred"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "6cab6e1b-5cde-4e59-96a1-c8b90ef2f7c1"
+  }
+}

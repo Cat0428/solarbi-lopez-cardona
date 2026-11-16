@@ -1,0 +1,105 @@
+/// Grano: inversor × hora local. Densificada (horas sin datos con minutos_con_datos = 0).
+table fact_energia_hora
+	lineageTag: 7d6c48d2-6833-437e-909d-92fd7968fd91
+
+	column fecha_key
+		dataType: int64
+		isHidden
+		lineageTag: b5e16755-27ec-476d-8ad3-00c818d188d5
+		summarizeBy: none
+		sourceColumn: fecha_key
+
+	column hora_key
+		dataType: int64
+		isHidden
+		lineageTag: c3844542-37e3-4d9a-9d27-13afb045e14b
+		summarizeBy: none
+		sourceColumn: hora_key
+
+	column inversor_key
+		dataType: int64
+		isHidden
+		lineageTag: 275e98cf-448a-47f9-8065-dab83fcc611b
+		summarizeBy: none
+		sourceColumn: inversor_key
+
+	column energia_pv_kwh
+		dataType: double
+		lineageTag: 1bd01f41-e717-4082-9e09-30e7f77930ba
+		sourceColumn: energia_pv_kwh
+
+	column energia_carga_kwh
+		dataType: double
+		lineageTag: 1e765b00-d2de-4bb6-aac0-eade24ab4572
+		sourceColumn: energia_carga_kwh
+
+	column energia_red_kwh
+		dataType: double
+		lineageTag: 01ba03cd-24b7-46ea-9260-59c7d2ab98b2
+		sourceColumn: energia_red_kwh
+
+	column energia_bat_carga_kwh
+		dataType: double
+		lineageTag: e0d8135f-8b95-40bd-989a-9629ff2e3d9d
+		sourceColumn: energia_bat_carga_kwh
+
+	column energia_bat_desc_kwh
+		dataType: double
+		lineageTag: 429953b0-36f9-41f6-89f8-ee437afcad33
+		sourceColumn: energia_bat_desc_kwh
+
+	column soc_prom_pct
+		dataType: double
+		lineageTag: 6ae2a99f-8dbb-4a9d-ba00-0b6a24d3ea35
+		sourceColumn: soc_prom_pct
+
+	column soc_min_pct
+		dataType: double
+		lineageTag: 29f0b526-6e97-47f5-a77e-b0064d654c41
+		sourceColumn: soc_min_pct
+
+	column soc_fin_pct
+		dataType: double
+		lineageTag: 6f41bf35-5023-4608-807d-a950593b8255
+		sourceColumn: soc_fin_pct
+
+	column carga_max_w
+		dataType: double
+		lineageTag: c15623cd-b30e-4550-a519-6b9160dcbda2
+		sourceColumn: carga_max_w
+
+	column minutos_con_datos
+		dataType: int64
+		lineageTag: f220432d-9f4d-4457-9537-0a59ea96ceb5
+		sourceColumn: minutos_con_datos
+
+	column minutos_soc_lleno
+		dataType: int64
+		lineageTag: 12a0acb2-6b1f-4596-9b02-4fe33742d8c2
+		sourceColumn: minutos_soc_lleno
+
+	column lecturas_validas
+		dataType: int64
+		lineageTag: 62e26a90-2400-48ad-bc79-d0115f207f70
+		sourceColumn: lecturas_validas
+
+	column lecturas_recibidas
+		dataType: int64
+		lineageTag: dd4035c1-3a13-4fea-80f5-e30298d04753
+		sourceColumn: lecturas_recibidas
+
+	column lecturas_esperadas
+		dataType: int64
+		lineageTag: 1035371c-1b2f-44c2-9879-efcc3a202f9b
+		sourceColumn: lecturas_esperadas
+
+	partition fact_energia_hora = m
+		mode: import
+		source =
+				let
+				    Origen = PostgreSQL.Database(Servidor, BaseDatos),
+				    Datos = Origen{[Schema="gold", Item="fact_energia_hora"]}[Data],
+				    Resultado = Datos
+				in
+				    Resultado
+

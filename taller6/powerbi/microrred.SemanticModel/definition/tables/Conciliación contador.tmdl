@@ -1,0 +1,57 @@
+/// Energía del contador del inversor frente a la integrada por el ETL, por mes (última corrida).
+table 'Conciliación contador'
+	lineageTag: f2c2062a-79d7-4ee7-b370-c4b757f45cb7
+
+	column ejecucion_id
+		dataType: int64
+		isHidden
+		lineageTag: 97e10f15-d461-4b17-ba59-2e0304048fdd
+		sourceColumn: ejecucion_id
+
+	column inversor_id
+		dataType: int64
+		lineageTag: dd7d7ded-bb9e-4de1-ad6e-71bd4421b062
+		summarizeBy: none
+		sourceColumn: inversor_id
+
+	column mes
+		dataType: string
+		lineageTag: 6c18c585-4433-438d-9010-1b4ef7a80b28
+		sourceColumn: mes
+
+	column variable
+		dataType: string
+		lineageTag: f4a16d3a-efaa-44fa-be5d-c751ddf0da49
+		sourceColumn: variable
+
+	column energia_contador_kwh
+		dataType: double
+		lineageTag: 00cd7a9b-3d0a-4393-8e40-4c2d2586a358
+		sourceColumn: energia_contador_kwh
+
+	column energia_integrada_kwh
+		dataType: double
+		lineageTag: 2026f4f8-4438-4ac9-8d42-d8c06e9414d1
+		sourceColumn: energia_integrada_kwh
+
+	column horas_ventana
+		dataType: double
+		lineageTag: 2f57be41-054c-4914-85a4-f1c2f6297cb1
+		sourceColumn: horas_ventana
+
+	column diferencia_pct
+		dataType: double
+		lineageTag: 85c6e5d2-ba51-4279-80d0-13a42e9ad3b9
+		sourceColumn: diferencia_pct
+
+	partition 'Conciliación contador' = m
+		mode: import
+		source =
+				let
+				    Origen = PostgreSQL.Database(Servidor, BaseDatos),
+				    Datos = Origen{[Schema="ops", Item="conciliacion_contador"]}[Data],
+				    Ultima = List.Max(Datos[ejecucion_id]),
+				    Resultado = Table.SelectRows(Datos, each [ejecucion_id] = Ultima)
+				in
+				    Resultado
+

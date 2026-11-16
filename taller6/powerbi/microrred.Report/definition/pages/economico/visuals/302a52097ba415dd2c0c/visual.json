@@ -1,0 +1,68 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "302a52097ba415dd2c0c",
+  "position": {
+    "x": 20,
+    "y": 92,
+    "z": 10,
+    "height": 100,
+    "width": 300,
+    "tabOrder": 10
+  },
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tarifa"
+                    }
+                  },
+                  "Property": "Tarifa COP/kWh"
+                }
+              },
+              "queryRef": "Tarifa.Tarifa COP/kWh",
+              "nativeQueryRef": "Tarifa (COP/kWh)",
+              "active": true,
+              "displayName": "Tarifa (COP/kWh)"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "data": [
+        {
+          "properties": {
+            "mode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Dropdown'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "selection": [
+        {
+          "properties": {
+            "singleSelect": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

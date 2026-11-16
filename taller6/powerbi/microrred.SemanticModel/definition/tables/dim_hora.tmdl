@@ -1,0 +1,59 @@
+/// Dimensión construida: hora local, franja y periodo de tarifa.
+table dim_hora
+	lineageTag: 9345b9a0-9912-4bfb-b332-8b34a971dfbc
+
+	column hora_key
+		dataType: int64
+		lineageTag: 5b787c16-1a0c-4f45-baaf-98afe09f3b38
+		summarizeBy: none
+		sourceColumn: hora_key
+
+	column hora_texto
+		dataType: string
+		lineageTag: 3f86bd27-a99e-4e20-adbf-170287d2009d
+		sourceColumn: hora_texto
+		sortByColumn: hora_key
+
+	column franja
+		dataType: string
+		lineageTag: 9c3c99fc-9ebb-4697-ad56-30d4f9c04814
+		sourceColumn: franja
+		sortByColumn: orden_franja
+
+	column orden_franja
+		dataType: int64
+		isHidden
+		lineageTag: 7e7229a2-ed7a-4b43-ba1e-bde6fdd51af1
+		sourceColumn: orden_franja
+
+	column es_hora_solar
+		dataType: boolean
+		lineageTag: 5c46f12b-b695-49cf-b0d1-66a4a5223ff9
+		sourceColumn: es_hora_solar
+
+	column periodo_tarifa
+		dataType: string
+		lineageTag: 4fdac322-ebdb-4339-840a-ded357469726
+		sourceColumn: periodo_tarifa
+
+	hierarchy 'Franja horaria'
+		lineageTag: d375b168-7f5a-4fa0-8f9b-d6a3cf4a32ff
+
+		level Franja
+			lineageTag: 4b21c663-662a-4d8a-bb39-4869e0867afd
+			column: franja
+
+		level Hora
+			lineageTag: 22b60dfa-c76a-4187-ab0c-8e996600c1a9
+			column: hora_texto
+
+	partition dim_hora = m
+		mode: import
+		source =
+				let
+				    Origen = PostgreSQL.Database(Servidor, BaseDatos),
+				    Datos = Origen{[Schema="gold", Item="dim_hora"]}[Data],
+				    Resultado = Datos
+				in
+				    Resultado
+

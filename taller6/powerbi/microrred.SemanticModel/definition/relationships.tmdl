@@ -1,0 +1,44 @@
+relationship feh_fecha
+	fromColumn: fact_energia_hora.fecha_key
+	toColumn: dim_fecha.fecha_key
+
+relationship feh_hora
+	fromColumn: fact_energia_hora.hora_key
+	toColumn: dim_hora.hora_key
+
+relationship feh_inversor
+	fromColumn: fact_energia_hora.inversor_key
+	toColumn: dim_inversor.inversor_key
+
+relationship fe_fecha
+	fromColumn: fact_evento.fecha_key
+	toColumn: dim_fecha.fecha_key
+
+relationship fe_hora
+	fromColumn: fact_evento.hora_key
+	toColumn: dim_hora.hora_key
+
+relationship fe_inversor
+	fromColumn: fact_evento.inversor_key
+	toColumn: dim_inversor.inversor_key
+
+relationship fe_tipo
+	fromColumn: fact_evento.tipo_evento_key
+	toColumn: dim_tipo_evento.tipo_evento_key
+
+relationship fa_fecha
+	fromColumn: fact_actividad.fecha_key
+	toColumn: dim_fecha.fecha_key
+
+relationship fa_hora
+	fromColumn: fact_actividad.hora_key
+	toColumn: dim_hora.hora_key
+
+relationship fa_inversor
+	fromColumn: fact_actividad.inversor_key
+	toColumn: dim_inversor.inversor_key
+
+relationship fa_fuente
+	fromColumn: fact_actividad.fuente_key
+	toColumn: dim_fuente_contexto.fuente_key
+

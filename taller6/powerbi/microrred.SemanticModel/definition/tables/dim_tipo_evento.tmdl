@@ -1,0 +1,56 @@
+/// Catálogo de eventos: detectados por el ETL y reportados por el inversor.
+table dim_tipo_evento
+	lineageTag: d834620c-0bc6-43a6-98ba-4fc329631320
+
+	column tipo_evento_key
+		dataType: int64
+		isHidden
+		lineageTag: 87ffad31-29dd-48cf-9ffe-0a7816d523ae
+		sourceColumn: tipo_evento_key
+
+	column codigo
+		dataType: string
+		lineageTag: 080fe900-12a8-4424-b5d6-5a6e050d17f5
+		sourceColumn: codigo
+
+	column nombre
+		dataType: string
+		lineageTag: c5954548-8610-4762-a5ba-564ed49d99d2
+		sourceColumn: nombre
+
+	column categoria
+		dataType: string
+		lineageTag: 304cbb15-f263-4d6f-b45e-d8ce0b1e551f
+		sourceColumn: categoria
+
+	column severidad
+		dataType: string
+		lineageTag: 11246f5e-37ad-4a26-9ca3-fc1a97c545bb
+		sourceColumn: severidad
+
+	column regla
+		dataType: string
+		lineageTag: 3c0d1232-0db1-4a1e-b3a8-6e80794d6e5c
+		sourceColumn: regla
+
+	hierarchy 'Categoría de evento'
+		lineageTag: 0dcfa0c3-f4e8-438d-839b-ebaccfc2bec3
+
+		level Categoría
+			lineageTag: 7c617fb5-ce42-4056-8b03-69aabc0e6fa9
+			column: categoria
+
+		level Tipo
+			lineageTag: 7143e566-4232-4660-a568-ddb0a4b74ae4
+			column: nombre
+
+	partition dim_tipo_evento = m
+		mode: import
+		source =
+				let
+				    Origen = PostgreSQL.Database(Servidor, BaseDatos),
+				    Datos = Origen{[Schema="gold", Item="dim_tipo_evento"]}[Data],
+				    Resultado = Datos
+				in
+				    Resultado
+

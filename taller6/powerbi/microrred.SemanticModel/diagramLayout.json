@@ -1,0 +1,178 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 1539.8882135998604,
+        "y": 202.45809714887395
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 0,
+            "y": 14
+          },
+          "nodeIndex": "Conciliación contador",
+          "nodeLineageTag": "f2c2062a-79d7-4ee7-b370-c4b757f45cb7",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 284,
+            "y": 0
+          },
+          "nodeIndex": "dim_fecha",
+          "nodeLineageTag": "3c43204a-a499-4e52-b502-cde86e0939ad",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 568,
+            "y": 62
+          },
+          "nodeIndex": "dim_fuente_contexto",
+          "nodeLineageTag": "dcaac65e-cee0-456a-b9e6-3c15dd187049",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 852,
+            "y": 38
+          },
+          "nodeIndex": "dim_hora",
+          "nodeLineageTag": "9345b9a0-9912-4bfb-b332-8b34a971dfbc",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1136,
+            "y": 0
+          },
+          "nodeIndex": "dim_inversor",
+          "nodeLineageTag": "17eccbdb-381b-45f9-ab4f-c845c4123c88",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1420,
+            "y": 38
+          },
+          "nodeIndex": "dim_tipo_evento",
+          "nodeLineageTag": "d834620c-0bc6-43a6-98ba-4fc329631320",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1704,
+            "y": 0
+          },
+          "nodeIndex": "fact_actividad",
+          "nodeLineageTag": "7265563d-c094-4478-acc1-12202c78dcbc",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1988,
+            "y": 0
+          },
+          "nodeIndex": "fact_energia_hora",
+          "nodeLineageTag": "7d6c48d2-6833-437e-909d-92fd7968fd91",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2272,
+            "y": 0
+          },
+          "nodeIndex": "fact_evento",
+          "nodeLineageTag": "cf6f146e-6385-4e6d-a3e9-b8bf6f57629f",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2556,
+            "y": 14
+          },
+          "nodeIndex": "Reglas de calidad",
+          "nodeLineageTag": "cb3ee122-8764-428a-8c0a-dbb3d75c1235",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2840,
+            "y": 50
+          },
+          "nodeIndex": "_Medidas",
+          "nodeLineageTag": "a726ad53-dcf9-4404-97fb-103fb7cb3345",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3124,
+            "y": 50
+          },
+          "nodeIndex": "Tarifa",
+          "nodeLineageTag": "8a985046-9549-4fb9-b94a-4bf64c705fd4",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 358,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

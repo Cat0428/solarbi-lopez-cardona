@@ -1,0 +1,115 @@
+/// Calendario en hora local del sitio (Asia/Shanghai). Festivos derivados del contexto.
+table dim_fecha
+	lineageTag: 3c43204a-a499-4e52-b502-cde86e0939ad
+	dataCategory: Time
+
+	column fecha_key
+		dataType: int64
+		isHidden
+		lineageTag: 666cbf63-62f9-4a2d-8ba0-8ec63873f0b9
+		sourceColumn: fecha_key
+
+	column fecha
+		dataType: dateTime
+		isUnique
+		formatString: dd/mm/yyyy
+		lineageTag: 75d0cdc4-def9-4917-81b9-4004aa161b02
+		sourceColumn: fecha
+
+	column anio
+		dataType: int64
+		lineageTag: c8509957-d0fc-4c10-bacd-669b90a8283b
+		summarizeBy: none
+		sourceColumn: anio
+
+	column trimestre
+		dataType: int64
+		lineageTag: cf237a55-9085-4a5e-b6ed-9f3e67073642
+		summarizeBy: none
+		sourceColumn: trimestre
+
+	column mes
+		dataType: int64
+		lineageTag: 26a49bd4-e44a-4645-a5b4-3e05c8fefbb3
+		summarizeBy: none
+		sourceColumn: mes
+
+	column nombre_mes
+		dataType: string
+		lineageTag: 81f9a8f5-31ff-47b5-9e8b-56775126820d
+		sourceColumn: nombre_mes
+		sortByColumn: mes
+
+	column anio_mes
+		dataType: string
+		lineageTag: 64e3930e-1e83-4b6d-b879-a1f0b6d6d5b9
+		sourceColumn: anio_mes
+
+	column semana_iso
+		dataType: int64
+		lineageTag: ffb43d88-26b9-4666-a0f7-3b194d21bbc8
+		summarizeBy: none
+		sourceColumn: semana_iso
+
+	column dia
+		dataType: int64
+		lineageTag: 147a7256-0fac-46ab-920b-5e1a56482338
+		summarizeBy: none
+		sourceColumn: dia
+
+	column dia_semana
+		dataType: int64
+		lineageTag: c6f136b8-c7d6-46c1-9165-32f3b43f1e4f
+		summarizeBy: none
+		sourceColumn: dia_semana
+
+	column nombre_dia
+		dataType: string
+		lineageTag: ae3a7ba3-8215-4056-986a-945e0702c351
+		sourceColumn: nombre_dia
+		sortByColumn: dia_semana
+
+	column es_fin_semana
+		dataType: boolean
+		lineageTag: 7dc95940-d7e2-44b6-b5c3-7a56e01ad46a
+		sourceColumn: es_fin_semana
+
+	column es_festivo
+		dataType: boolean
+		lineageTag: bf975e23-4cee-4ed6-a8a0-1319d2a74456
+		sourceColumn: es_festivo
+
+	column evento_campus
+		dataType: string
+		lineageTag: 54f6f484-057d-4a68-ac29-270852066f6f
+		sourceColumn: evento_campus
+
+	hierarchy Calendario
+		lineageTag: 40f9b660-525f-499d-a4ce-bcf90c6ebd9b
+
+		level Año
+			lineageTag: 006363c0-c76b-4066-b549-da64530155a1
+			column: anio
+
+		level Trimestre
+			lineageTag: 10ff7703-38ad-4048-8940-412c4a17e476
+			column: trimestre
+
+		level Mes
+			lineageTag: 45e1ec7f-e896-4d05-ab26-e9a1bbd6218e
+			column: nombre_mes
+
+		level Día
+			lineageTag: 1e2cf363-0f66-4680-9c19-8a6ee0eb452f
+			column: fecha
+
+	partition dim_fecha = m
+		mode: import
+		source =
+				let
+				    Origen = PostgreSQL.Database(Servidor, BaseDatos),
+				    Datos = Origen{[Schema="gold", Item="dim_fecha"]}[Data],
+				    Resultado = Datos
+				in
+				    Resultado
+

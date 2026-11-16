@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "microrred"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "67e212eb-8217-43d0-a289-30cba34fb733"
+  }
+}
