@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Autor** | Cristian López Cardona (trabajo individual) |
+| **Autor** | Cristian López Cardona | Sebastián Pineda |
 | **Curso** | Inteligencia de Negocios · Grupo 01 · 2026-II |
 | **Docente** | Ramiro Grisales Montoya |
 | **Institución** | Institución Universitaria Pascual Bravo · Departamento de Sistemas Digitales |
