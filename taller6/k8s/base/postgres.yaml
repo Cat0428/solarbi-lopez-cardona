@@ -1,0 +1,90 @@
+# Necesidad: base de datos que no pierda datos al reiniciar.
+# StatefulSet (y no Deployment) porque PostgreSQL tiene identidad y estado: el pod se llama
+# siempre postgres-0 y, aunque se elimine, vuelve a montar SU MISMO volumen (volumeClaimTemplates
+# → PVC data-postgres-0 sobre la StorageClass "standard" de kind). Una sola réplica: PostgreSQL
+# no se escala sumando réplicas iguales (cada una tendría su propio disco y datos divergentes).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: microrred
+  labels: {app: postgres}
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels: {app: postgres}
+  template:
+    metadata:
+      labels: {app: postgres}
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16.9
+          ports:
+            - {name: pg, containerPort: 5432}
+          envFrom:
+            - secretRef: {name: microrred-credenciales}     # credenciales fuera del código
+          env:
+            - {name: PGDATA, value: /var/lib/postgresql/data/pgdata}
+            - {name: TZ, value: America/Bogota}
+            - {name: PGTZ, value: America/Bogota}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/postgresql/data}
+            - {name: init, mountPath: /docker-entrypoint-initdb.d, readOnly: true}
+          # Sondas de salud: readiness decide si el Service le envía tráfico;
+          # liveness reinicia el contenedor si deja de responder.
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -h 127.0.0.1"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\" -h 127.0.0.1"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits:   {cpu: "1",  memory: 1Gi}
+      volumes:
+        - name: init
+          configMap:
+            name: postgres-init
+            defaultMode: 0555
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 5Gi
+---
+# Service "headless" que exige el StatefulSet. Da el nombre DNS estable
+# postgres.microrred.svc.cluster.local: ETL, simulador y Grafana encuentran
+# la base por NOMBRE, nunca por IP (la IP del pod cambia al recrearlo).
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: microrred
+spec:
+  clusterIP: None
+  selector: {app: postgres}
+  ports:
+    - {name: pg, port: 5432, targetPort: pg}
+---
+# Acceso desde el anfitrión (DBeaver y Power BI en Windows): NodePort 30432,
+# publicado por kind en 127.0.0.1:55432 (ver kind-config.yaml).
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-externo
+  namespace: microrred
+spec:
+  type: NodePort
+  selector: {app: postgres}
+  ports:
+    - {name: pg, port: 5432, targetPort: pg, nodePort: 30432}

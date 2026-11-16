@@ -1,0 +1,638 @@
+{
+  "uid": "microrred-operativo",
+  "title": "Microrred OpenCEM · Monitoreo operativo",
+  "tags": [
+    "microrred",
+    "taller6"
+  ],
+  "timezone": "browser",
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "version": 1,
+  "editable": false,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "inversor",
+        "label": "Inversor",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "microrred-pg"
+        },
+        "query": "SELECT inversor_id AS __value, nombre AS __text FROM gold.dim_inversor WHERE es_actual ORDER BY inversor_id",
+        "definition": "SELECT inversor_id AS __value, nombre AS __text FROM gold.dim_inversor WHERE es_actual ORDER BY inversor_id",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "sort": 1
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 100,
+      "type": "row",
+      "title": "Estado actual (último minuto recibido)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "SOC de la batería",
+      "description": "Último estado de carga reportado por cada inversor. Rojo por debajo del umbral de la alerta (20 %).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "microrred-pg"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 6,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "microrred-pg"
+          },
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "SELECT DISTINCT ON (inversor_id) ts AS \"time\", 'Inversor ' || inversor_id AS inversor, soc_pct AS \"SOC\"\nFROM silver.lectura_1min\nWHERE inversor_id IN ($inversor) AND ts > now() - interval '1 day'\nORDER BY inversor_id, ts DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 20
+              },
+              {
+                "color": "green",
+                "value": 40
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "horizontal"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Potencia instantánea",
+      "description": "Promedio del último minuto. Batería positiva = descarga hacia la carga; negativa = se está cargando.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "microrred-pg"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 1,
+        "w": 10,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "microrred-pg"
+          },
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "SELECT DISTINCT ON (inversor_id) ts AS \"time\", 'Inversor ' || inversor_id AS inversor, pv_potencia_w AS \"Solar\", carga_potencia_w AS \"Carga\", red_potencia_w AS \"Red\", bat_potencia_w AS \"Batería (+desc / −carga)\"\nFROM silver.lectura_1min\nWHERE inversor_id IN ($inversor) AND ts > now() - interval '1 day'\nORDER BY inversor_id, ts DESC"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "vertical"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Minutos sin datos",
+      "description": "Tiempo desde la última lectura. Más de 5 min dispara la alerta de pérdida de comunicación.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "microrred-pg"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 4,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "microrred-pg"
+          },
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "SELECT 'Inversor ' || i AS inversor,\n       coalesce(extract(epoch FROM now() - max(l.ts)) / 60, 9999) AS \"min sin datos\"\nFROM unnest(ARRAY[$inversor]::int[]) AS i  -- Grafana entrega la variable como texto\nLEFT JOIN silver.lectura_1min l ON l.inversor_id = i AND l.ts > now() - interval '1 day'\nGROUP BY i ORDER BY i"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "m",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name"
+      }
+    },
+    {
+      "id": 4,
+      "type": "gauge",
+      "title": "Datos válidos (periodo)",
+      "description": "Lecturas válidas / lecturas recibidas en el rango de tiempo elegido.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "microrred-pg"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 5
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "microrred-pg"
+          },
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "SELECT 100.0 * sum(n_lecturas) / nullif(sum(n_recibidas), 0) AS \"% válidos\"\nFROM silver.lectura_1min\nWHERE $__timeFilter(ts) AND inversor_id IN ($inversor)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 95
+              },
+              {
+                "color": "green",
+                "value": 99
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "Series de tiempo",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Flujos de potencia por inversor (W)",
+      "description": "De dónde viene la energía (solar, red, batería) y a dónde va (carga), minuto a minuto.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "microrred-pg"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 16,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "microrred-pg"
+          },
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "time_series",
+          "rawSql": "SELECT ts AS \"time\",\n       'Inv ' || inversor_id || ' · solar' AS metric, pv_potencia_w AS value\nFROM silver.lectura_1min WHERE $__timeFilter(ts) AND inversor_id IN ($inversor)\nUNION ALL\nSELECT ts, 'Inv ' || inversor_id || ' · carga', carga_potencia_w\nFROM silver.lectura_1min WHERE $__timeFilter(ts) AND inversor_id IN ($inversor)\nUNION ALL\nSELECT ts, 'Inv ' || inversor_id || ' · red', red_potencia_w\nFROM silver.lectura_1min WHERE $__timeFilter(ts) AND inversor_id IN ($inversor)\nUNION ALL\nSELECT ts, 'Inv ' || inversor_id || ' · batería', bat_potencia_w\nFROM silver.lectura_1min WHERE $__timeFilter(ts) AND inversor_id IN ($inversor)\nORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": 120000,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "alertlist",
+      "title": "Alertas activas",
+      "description": "Reglas de alerta provisionadas desde Git (carpeta Microrred).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "microrred-pg"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 7,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "viewMode": "list",
+        "groupMode": "default",
+        "maxItems": 10,
+        "sortOrder": 1,
+        "stateFilter": {
+          "firing": true,
+          "pending": true,
+          "normal": true,
+          "error": true,
+          "noData": true
+        },
+        "alertInstanceLabelFilter": "",
+        "folder": null,
+        "showInstances": true
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Estado de carga (SOC)",
+      "description": "La línea roja es el umbral de batería baja (20 %).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "microrred-pg"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "microrred-pg"
+          },
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "time_series",
+          "rawSql": "SELECT ts AS \"time\", 'Inversor ' || inversor_id AS metric, soc_pct AS value\nFROM silver.lectura_1min WHERE $__timeFilter(ts) AND inversor_id IN ($inversor) ORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
+            ]
+          },
+          "custom": {
+            "thresholdsStyle": {
+              "mode": "line+area"
+            },
+            "lineWidth": 2,
+            "spanNulls": 120000,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "barchart",
+      "title": "Energía del periodo por origen (kWh)",
+      "description": "Balance energético del rango elegido: solar + batería + red ≈ consumo + pérdidas del inversor.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "microrred-pg"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "microrred-pg"
+          },
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "table",
+          "rawSql": "SELECT 'Inversor ' || inversor_id AS inversor,\n       sum(pv_energia_wh) / 1000 AS \"Solar\",\n       sum(bat_desc_energia_wh) / 1000 AS \"Batería (descarga)\",\n       sum(red_energia_wh) / 1000 AS \"Red\",\n       sum(carga_energia_wh) / 1000 AS \"Consumo de la carga\"\nFROM silver.lectura_1min WHERE $__timeFilter(ts) AND inversor_id IN ($inversor)\nGROUP BY inversor_id ORDER BY inversor_id"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kwatth",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "inversor",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "showValue": "auto",
+        "groupWidth": 0.8,
+        "barWidth": 0.9
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Red pública y temperatura del inversor",
+      "description": "Voltaje de red (V) y temperatura interna (°C, temper3).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "microrred-pg"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 24,
+        "h": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "microrred-pg"
+          },
+          "refId": "A",
+          "editorMode": "code",
+          "rawQuery": true,
+          "format": "time_series",
+          "rawSql": "SELECT ts AS \"time\", 'Inv ' || inversor_id || ' · V red' AS metric, red_voltaje_v AS value\nFROM silver.lectura_1min WHERE $__timeFilter(ts) AND inversor_id IN ($inversor)\nUNION ALL\nSELECT ts, 'Inv ' || inversor_id || ' · °C inversor', temp_inversor_c\nFROM silver.lectura_1min WHERE $__timeFilter(ts) AND inversor_id IN ($inversor)\nORDER BY 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "spanNulls": 120000,
+            "showPoints": "never"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*°C.*"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "celsius"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*V red.*"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "volt"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    }
+  ]
+}

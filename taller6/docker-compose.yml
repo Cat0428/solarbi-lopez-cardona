@@ -1,0 +1,79 @@
+# Taller 6 · Desarrollo local con Docker Compose (paso previo al clúster).
+#   docker compose up -d --build           PostgreSQL + Grafana + simulador
+#   docker compose run --rm etl            carga histórica (una vez)
+#   docker compose down -v                 apaga y borra datos
+# Usa los MISMOS archivos de configuración que Kubernetes (k8s/base/...) y los mismos puertos
+# del anfitrión: no ejecute compose y el clúster kind al mismo tiempo.
+name: microrred
+
+x-credenciales: &credenciales
+  env_file: [credenciales.env]
+
+services:
+  postgres:
+    image: postgres:16.9
+    <<: *credenciales
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      TZ: America/Bogota
+      PGTZ: America/Bogota
+    ports: ["127.0.0.1:55432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./k8s/base/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      retries: 20
+    deploy:
+      resources:
+        limits: {cpus: "1", memory: 1g}
+
+  grafana:
+    image: grafana/grafana:12.2.0
+    <<: *credenciales
+    depends_on:
+      postgres: {condition: service_healthy}
+    environment:
+      GF_USERS_DEFAULT_LANGUAGE: es-ES
+      GF_DATE_FORMATS_DEFAULT_TIMEZONE: America/Bogota
+    ports: ["127.0.0.1:3001:3000"]
+    volumes:
+      - ./k8s/base/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./k8s/base/grafana/dashboards-provider:/etc/grafana/provisioning/dashboards:ro
+      - ./k8s/base/grafana/alerting:/etc/grafana/provisioning/alerting:ro
+      - ./k8s/base/grafana/tableros:/var/lib/grafana/dashboards:ro
+    deploy:
+      resources:
+        limits: {cpus: "0.5", memory: 512m}
+
+  etl:
+    build: {context: ., dockerfile: etl/Dockerfile}
+    image: microrred-etl:1.0.0
+    profiles: [etl]                     # no arranca con "up": se lanza con "compose run"
+    <<: *credenciales
+    env_file: [credenciales.env, k8s/base/parametros.env]
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      BRONZE_DIR: /bronze
+    volumes:
+      - ./data/bronze:/bronze:ro
+    depends_on:
+      postgres: {condition: service_healthy}
+
+  simulador:
+    build: {context: ., dockerfile: simulador/Dockerfile}
+    image: microrred-simulador:1.0.0
+    env_file: [credenciales.env, k8s/base/parametros.env]
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+    # En compose no hay CronJob: un bucle simple cumple el mismo papel en desarrollo.
+    entrypoint: ["sh", "-c", "while true; do python simulador.py; sleep 60; done"]
+    depends_on:
+      postgres: {condition: service_healthy}
+    restart: unless-stopped
+
+volumes:
+  pgdata:

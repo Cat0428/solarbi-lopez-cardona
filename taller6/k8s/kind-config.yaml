@@ -1,0 +1,31 @@
+# Clúster local de UN nodo con kind (Kubernetes IN Docker).
+#   kind create cluster --config k8s/kind-config.yaml
+#
+# Por qué kind: corre sobre el mismo Docker Desktop del Taller anterior, se crea y se
+# destruye en segundos (reproducible desde cero) y la versión de Kubernetes queda fija
+# en la imagen del nodo. Las imágenes propias llegan al nodo con `kind load docker-image`
+# (no hay registro: el nodo las tiene en su caché y los pods usan imagePullPolicy: IfNotPresent).
+#
+# IMPORTANTE: las rutas relativas de extraMounts se resuelven desde la carpeta donde se
+# ejecuta `kind create cluster`. Los scripts up.ps1 / up.sh se ejecutan desde taller6/.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: microrred
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.33.1
+    # La capa Bronze (archivo .sqlite, solo lectura) entra al nodo como carpeta montada;
+    # el Job del ETL la ve por un volumen hostPath. Así los 300 MB+ no viajan en la imagen.
+    extraMounts:
+      - hostPath: ./data/bronze
+        containerPath: /data/bronze
+        readOnly: true
+    # Los Services NodePort del clúster se publican en el anfitrión para Power BI,
+    # DBeaver y el navegador (que corren en Windows, fuera del clúster).
+    extraPortMappings:
+      - containerPort: 30432   # NodePort de PostgreSQL
+        hostPort: 55432
+        listenAddress: "127.0.0.1"
+      - containerPort: 30300   # NodePort de Grafana
+        hostPort: 3001
+        listenAddress: "127.0.0.1"

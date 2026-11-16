@@ -1,0 +1,21 @@
+# Ambiente DEV (portátil del desarrollador): menos recursos y el simulador cada 2 minutos.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+configMapGenerator:
+  - name: microrred-parametros
+    behavior: merge
+    literals:
+      - SIM_ANOMALIA_CADA_MIN=0
+patches:
+  - target: {kind: CronJob, name: simulador}
+    patch: |-
+      - op: replace
+        path: /spec/schedule
+        value: "*/2 * * * *"
+  - target: {kind: StatefulSet, name: postgres}
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value: {requests: {cpu: 100m, memory: 256Mi}, limits: {cpu: 500m, memory: 768Mi}}

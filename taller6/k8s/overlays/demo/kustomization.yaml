@@ -1,0 +1,11 @@
+# Ambiente DEMO (sustentación): la base completa y el simulador con un episodio de batería
+# baja de 6 minutos cada 15 minutos, para que la alerta de Grafana se dispare en vivo.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+configMapGenerator:
+  - name: microrred-parametros
+    behavior: merge
+    literals:
+      - SIM_ANOMALIA_CADA_MIN=15

@@ -1,0 +1,21 @@
+# Data source creado al arrancar Grafana (provisioning). Usa el rol de SOLO LECTURA bi_lector.
+# "postgres" es el nombre del Service: Grafana encuentra la base por DNS, no por IP.
+# La contraseña llega como variable de entorno desde el Secret (nunca escrita aquí).
+apiVersion: 1
+datasources:
+  - name: Microrred PostgreSQL
+    uid: microrred-pg
+    type: grafana-postgresql-datasource
+    access: proxy
+    url: postgres:5432
+    user: bi_lector
+    isDefault: true
+    editable: false
+    jsonData:
+      database: ${POSTGRES_DB}
+      sslmode: disable
+      postgresVersion: 1600
+      timescaledb: false
+      timeInterval: 1m
+    secureJsonData:
+      password: ${BI_LECTOR_PASSWORD}

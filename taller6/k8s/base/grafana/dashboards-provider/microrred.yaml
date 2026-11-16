@@ -1,0 +1,12 @@
+# Carga todo JSON de /var/lib/grafana/dashboards (ConfigMap grafana-tableros) en la carpeta "Microrred".
+# allowUiUpdates: false → el tablero versionado en Git es la única fuente de verdad.
+apiVersion: 1
+providers:
+  - name: microrred
+    folder: Microrred
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

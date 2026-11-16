@@ -1,0 +1,10 @@
+# El contexto de construcción es taller6/: sin esto Docker enviaría la Bronze (> 1 GB)
+data/
+docs/
+k8s/
+scripts/
+powerbi/
+*.env
+!k8s/base/parametros.env
+**/__pycache__/
+.git*

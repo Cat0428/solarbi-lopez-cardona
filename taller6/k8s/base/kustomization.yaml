@@ -1,0 +1,36 @@
+# Base de la solución. Se aplica con:  kubectl apply -k k8s/overlays/demo   (o dev)
+# Los ConfigMaps se GENERAN desde archivos versionados. Kustomize agrega un sufijo con el hash
+# del contenido al nombre: si cambia un umbral o el tablero, cambia el nombre, y los pods que lo
+# usan se recrean solos con la nueva configuración (sin reconstruir ninguna imagen).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: microrred
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: microrred-bi
+    includeSelectors: false
+resources:
+  - namespace.yaml
+  - postgres.yaml
+  - grafana.yaml
+  - etl-job.yaml
+  - simulador-cronjob.yaml
+configMapGenerator:
+  # Parámetros NO sensibles (umbrales, intervalos, tarifa) para ETL y simulador
+  # Sin sufijo de hash a propósito: el Job del ETL es inmutable y no debe recrearse por un
+  # cambio de umbral. El simulador (CronJob) crea un pod nuevo cada minuto y lee el valor
+  # nuevo en su siguiente corrida, sin reiniciar nada.
+  - name: microrred-parametros
+    envs: [parametros.env]
+    options:
+      disableNameSuffixHash: true
+  - name: postgres-init
+    files: [postgres-init/01_roles.sh]
+  - name: grafana-datasources
+    files: [grafana/datasources/postgres.yaml]
+  - name: grafana-dashboards-provider
+    files: [grafana/dashboards-provider/microrred.yaml]
+  - name: grafana-alertas
+    files: [grafana/alerting/reglas.yaml]
+  - name: grafana-tableros
+    files: [grafana/tableros/microrred.json]

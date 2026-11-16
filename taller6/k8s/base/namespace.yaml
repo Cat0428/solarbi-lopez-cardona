@@ -1,0 +1,8 @@
+# Necesidad: aislar el proyecto. Todo recurso del taller vive en este espacio de nombres,
+# así se lista (kubectl get all -n microrred), se limita y se borra en bloque.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: microrred
+  labels:
+    app.kubernetes.io/part-of: microrred-bi

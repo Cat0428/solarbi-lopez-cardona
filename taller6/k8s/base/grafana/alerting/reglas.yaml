@@ -1,0 +1,136 @@
+# Reglas de alerta provisionadas (ConfigMap grafana-alertas). NO se crean desde la interfaz.
+# Cambiar un umbral: editar el número en "params" → kubectl apply -k k8s/overlays/demo
+# (el ConfigMap cambia de nombre por el hash y Grafana se recrea con la regla nueva).
+# Las consultas no usan macros con "$" para que la interpolación de variables de entorno
+# del provisioning de Grafana no las altere; las plantillas usan .Labels / .Values.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: microrred-operacion
+    folder: Microrred
+    interval: 1m
+    rules:
+      # ---------------------------------------------------------------------------------
+      # 1) Batería baja. Umbral 20 % de SOC.
+      #    Justificación: el inversor está configurado para pasar a la red con SOC 10 %
+      #    (settings.inv2linesoc) y cortar en 5 % (batstopsoc); en el histórico el SOC llegó a 6 %
+      #    (inversor 1) y el inversor 2 tuvo el 3,3 % de sus lecturas con SOC ≤ 20 %. Avisar en 20 %
+      #    deja ~1 kWh (10 % de 10,24 kWh) para actuar antes de que el equipo conmute solo.
+      #    "for: 2m" evita falsos positivos por un minuto aislado.
+      # ---------------------------------------------------------------------------------
+      - uid: microrred-soc-bajo
+        title: Batería baja (SOC < 20 %)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: {from: 900, to: 0}
+            datasourceUid: microrred-pg
+            model:
+              refId: A
+              editorMode: code
+              rawQuery: true
+              format: table
+              rawSql: >-
+                SELECT 'Inversor ' || inversor_id AS inversor, soc_pct
+                FROM (SELECT DISTINCT ON (inversor_id) inversor_id, soc_pct
+                      FROM silver.lectura_1min
+                      WHERE ts > now() - interval '15 minutes' AND soc_pct IS NOT NULL
+                      ORDER BY inversor_id, ts DESC) ultimo
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator: {type: lt, params: [20]}
+        noDataState: OK          # sin datos lo cubre la regla 2
+        execErrState: Error
+        for: 2m
+        labels: {severidad: critica, equipo: mantenimiento}
+        annotations:
+          summary: "{{ .Labels.inversor }}: batería en {{ .Values.A.Value }} %"
+          description: "El SOC bajó del 20 %. Pasar cargas no críticas a la red o revisar la prioridad de fuentes del inversor."
+
+      # ---------------------------------------------------------------------------------
+      # 2) Pérdida de comunicación. Umbral 5 minutos sin lecturas.
+      #    Justificación: el inversor reporta cada ~12 s y el simulador cada minuto; 5 minutos
+      #    son 5 lotes perdidos seguidos (no un retraso puntual). En el histórico hubo 153
+      #    huecos de más de 10 min, uno de 26 días (agosto de 2025) que nadie detectó a tiempo.
+      # ---------------------------------------------------------------------------------
+      - uid: microrred-sin-datos
+        title: Inversor sin datos (> 5 min)
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: {from: 86400, to: 0}
+            datasourceUid: microrred-pg
+            model:
+              refId: A
+              editorMode: code
+              rawQuery: true
+              format: table
+              rawSql: >-
+                SELECT 'Inversor ' || i AS inversor,
+                       coalesce(extract(epoch FROM now() - max(l.ts)) / 60, 9999) AS minutos_sin_datos
+                FROM generate_series(1, 2) AS i
+                LEFT JOIN silver.lectura_1min l ON l.inversor_id = i AND l.ts > now() - interval '1 day'
+                GROUP BY i
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator: {type: gt, params: [5]}
+        noDataState: Alerting
+        execErrState: Error
+        for: 1m
+        labels: {severidad: critica, equipo: ti}
+        annotations:
+          summary: "{{ .Labels.inversor }} lleva {{ .Values.A.Value }} min sin reportar"
+          description: "Revisar el enlace Modbus/RS485, el simulador (CronJob) o la base de datos."
+
+      # ---------------------------------------------------------------------------------
+      # 3) Compra de red con la batería llena (alerta económica, advertencia).
+      #    Justificación: mientras el inversor 1 estuvo en prioridad de salida 0 (SOL, 29/08/2025 a
+      #    06/01/2026) su batería pasó llena el 84 % del tiempo de 10:00 a 15:00 y la red entregó el
+      #    108 % de lo que consumió la carga: se compra energía que la batería podría entregar.
+      #    Si en 10 min se importan en promedio más de 500 W con SOC ≥ 95 %, revisar la prioridad
+      #    de salida (volver a 2 · SBU).
+      # ---------------------------------------------------------------------------------
+      - uid: microrred-red-con-bateria-llena
+        title: Compra de red con batería llena
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: microrred-pg
+            model:
+              refId: A
+              editorMode: code
+              rawQuery: true
+              format: table
+              rawSql: >-
+                SELECT 'Inversor ' || inversor_id AS inversor,
+                       avg(red_potencia_w) FILTER (WHERE soc_pct >= 95) AS red_w_con_bateria_llena
+                FROM silver.lectura_1min
+                WHERE ts > now() - interval '10 minutes'
+                GROUP BY inversor_id
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator: {type: gt, params: [500]}
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        labels: {severidad: advertencia, equipo: direccion}
+        annotations:
+          summary: "{{ .Labels.inversor }} compra {{ .Values.A.Value }} W a la red con la batería llena"
+          description: "La batería está por encima del 95 % y la carga se alimenta de la red."

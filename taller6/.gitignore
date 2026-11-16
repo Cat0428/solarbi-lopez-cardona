@@ -1,0 +1,24 @@
+# Credenciales reales (se versiona solo credenciales.env.example)
+credenciales.env
+# Capa Bronze: 300 MB comprimida, se descarga de Zenodo (ver README)
+data/bronze/*
+!data/bronze/.gitkeep
+# Salidas locales del ETL
+data/silver/
+logs/
+
+# Temporales
+*.tmp
+
+# Power BI: archivos locales del proyecto .pbip
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+_to_delete/
+**/_to_delete/
+
+# Informe: archivos intermedios (se regeneran con docs/informe/construir_informe.py)
+docs/informe/_build/
+docs/informe/informe.html
+
+# Parámetros NO sensibles del ConfigMap: sí se versionan (el .gitignore de la raíz ignora *.env)
+!k8s/base/parametros.env

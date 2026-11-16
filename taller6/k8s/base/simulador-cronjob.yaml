@@ -1,0 +1,39 @@
+# Necesidad: datos nuevos cada cierto tiempo. El CronJob crea un Job cada minuto; cada corrida
+# "reproduce" el siguiente tramo de telemetría histórica con la hora actual (streaming simulado)
+# y termina. Grafana lo ve llegar y las alertas reaccionan.
+# CronJob y no Deployment con un bucle infinito: Kubernetes se encarga del reloj, de los
+# reintentos y del historial de corridas, y el contenedor no consume recursos entre lotes.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: simulador
+  namespace: microrred
+  labels: {app: simulador}
+spec:
+  schedule: "* * * * *"
+  concurrencyPolicy: Forbid          # nunca dos lotes a la vez
+  startingDeadlineSeconds: 50
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 50
+      template:
+        metadata:
+          labels: {app: simulador}
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: simulador
+              image: microrred-simulador:1.0.0
+              imagePullPolicy: IfNotPresent
+              envFrom:
+                - secretRef:    {name: microrred-credenciales}
+                - configMapRef: {name: microrred-parametros}
+              env:
+                - {name: PGHOST, value: postgres}
+                - {name: PGPORT, value: "5432"}
+              resources:
+                requests: {cpu: 50m,  memory: 64Mi}
+                limits:   {cpu: 250m, memory: 128Mi}

@@ -1,0 +1,49 @@
+# Necesidad: carga histórica. Un Job corre el ETL UNA vez, termina (Completed) y deja evidencia:
+#   - kubectl logs job/etl-historico -n microrred   (conteos por regla y conciliación)
+#   - tabla dwh.etl_ejecucion en PostgreSQL           (linaje de cada corrida)
+# Job y no Deployment: un Deployment reiniciaría el ETL para siempre al terminar.
+# Job y no CronJob: la carga histórica no es periódica. El ETL es idempotente, así que
+# volver a lanzar el Job (scripts/etl-de-nuevo) deja los mismos conteos.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: etl-historico
+  namespace: microrred
+  labels: {app: etl}
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels: {app: etl}
+    spec:
+      restartPolicy: Never
+      initContainers:
+        # Espera a que PostgreSQL acepte conexiones (lo encuentra por nombre DNS)
+        - name: espera-postgres
+          image: postgres:16.9
+          command: ["sh", "-c", "until pg_isready -h postgres -p 5432; do echo esperando postgres; sleep 3; done"]
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}
+            limits:   {cpu: 100m, memory: 64Mi}
+      containers:
+        - name: etl
+          image: microrred-etl:1.0.0
+          imagePullPolicy: IfNotPresent     # la imagen llega con `kind load`, no hay registro
+          envFrom:
+            - secretRef:    {name: microrred-credenciales}
+            - configMapRef: {name: microrred-parametros}
+          env:
+            - {name: PGHOST, value: postgres}
+            - {name: PGPORT, value: "5432"}
+            - {name: BRONZE_DIR, value: /bronze}
+          volumeMounts:
+            - {name: bronze, mountPath: /bronze, readOnly: true}
+          resources:
+            # Medido con la base oficial: pico de 2,6 GB de memoria y ~1 min de CPU
+            requests: {cpu: 500m, memory: 1536Mi}
+            limits:   {cpu: "2",  memory: 4Gi}
+      volumes:
+        - name: bronze               # carpeta del nodo kind montada desde taller6/data/bronze
+          hostPath:
+            path: /data/bronze
+            type: Directory
