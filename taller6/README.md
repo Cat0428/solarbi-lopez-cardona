@@ -95,7 +95,7 @@ El ETL usa `opencem-v1.0.0.sqlite` si existe y, si no, `opencem-github.sqlite`.
 - DBeaver / Power BI: servidor `127.0.0.1:55432`, base `microrred`, usuario `bi_lector`, sin SSL.
 - Consultas de negocio: [`sql/03_consultas_negocio.sql`](sql/03_consultas_negocio.sql).
 - DBeaver paso a paso (conexiones de administración y de consulta, DDL, diagrama ER, evidencias
-  y guion de la sustentación): [`docs/05_dbeaver.md`](docs/05_dbeaver.md); evidencias del punto F en
+  y demostración en vivo): [`docs/05_dbeaver.md`](docs/05_dbeaver.md); evidencias del punto F en
   [`sql/04_catalogo_dbeaver.sql`](sql/04_catalogo_dbeaver.sql).
 
 **4. Eliminar todo con un comando:** `.\scripts\down.ps1`
@@ -154,7 +154,6 @@ Detalle de cada regla, conteos antes y después, y criterio dato inválido / eve
 | I, J · Arquitectura, Power BI vs Grafana, Modbus/SCADA, Ley 1581, seguridad, hallazgos | [`docs/04_arquitectura_analisis_etica.md`](docs/04_arquitectura_analisis_etica.md) |
 | Informe PDF del taller (secciones A–K, capturas y evidencias del clúster) | [`docs/informe/BI_Taller6_Lopez_Cardona.pdf`](docs/informe/BI_Taller6_Lopez_Cardona.pdf) · se regenera con `python docs/informe/construir_informe.py` |
 | Evidencias del clúster (`kubectl get`/`describe`, demostraciones) | [`docs/evidencias/`](docs/evidencias/) · las genera `.\scripts\evidencias.ps1` |
-| Guía para correr la solución en vivo y guion de la sustentación | [`docs/06_guia_sustentacion.md`](docs/06_guia_sustentacion.md) |
 
 ## Datos y licencia
 

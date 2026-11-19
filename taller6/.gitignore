@@ -22,3 +22,8 @@ docs/informe/informe.html
 
 # Parámetros NO sensibles del ConfigMap: sí se versionan (el .gitignore de la raíz ignora *.env)
 !k8s/base/parametros.env
+
+# Guía de la sustentación: material de preparación del equipo, no se publica
+docs/06_guia_sustentacion.md
+docs/Guia_sustentacion_Taller6.pdf
+docs/informe/_build/

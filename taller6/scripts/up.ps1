@@ -45,7 +45,25 @@ if (-not $existe) {
     [IO.File]::WriteAllText($cfg, $texto)      # UTF-8 sin BOM: la ruta puede tener tildes
     Paso 'Creando clúster kind de un nodo' { kind create cluster --config $cfg }
 }
-else { Write-Host "Clúster '$CLUSTER' ya existe: se reutiliza." }
+else {
+    Write-Host "Clúster '$CLUSTER' ya existe: se reutiliza."
+    # Si Docker Desktop o el equipo se reiniciaron, el contenedor del nodo queda detenido y kind
+    # no lo vuelve a encender: se arranca aquí y se espera a que el nodo esté Ready.
+    $nodo = "$CLUSTER-control-plane"
+    if ((docker inspect -f '{{.State.Running}}' $nodo 2>$null) -ne 'true') {
+        Paso "Encendiendo el nodo detenido ($nodo)" { docker start $nodo }
+        Write-Host "`n==> Esperando que el nodo quede Ready" -ForegroundColor Cyan
+        $listo = $false
+        for ($i = 0; $i -lt 36 -and -not $listo; $i++) {      # hasta 3 minutos: la API tarda en volver
+            Start-Sleep 5
+            kubectl wait --for=condition=Ready node --all --timeout=5s 2>$null | Out-Null
+            $listo = ($LASTEXITCODE -eq 0)
+        }
+        if (-not $listo) { Write-Host 'FALLÓ: el nodo no quedó Ready. Pruebe .\scripts\down.ps1 y luego .\scripts\up.ps1' -ForegroundColor Red; exit 1 }
+        Write-Host '  nodo Ready'
+        # Los pods se recrean solos; el Job del ETL ya terminado no se vuelve a ejecutar
+    }
+}
 
 Paso 'Construyendo imagen del ETL'       { docker build -f etl/Dockerfile -t $IMG_ETL . }
 Paso 'Construyendo imagen del simulador' { docker build -f simulador/Dockerfile -t $IMG_SIM . }

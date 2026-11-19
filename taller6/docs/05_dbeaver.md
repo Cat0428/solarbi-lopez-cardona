@@ -99,7 +99,7 @@ muestra `Bitmap Index Scan on gin_contexto_valor`. El índice se justifica porqu
 anotación nueva y porque Q7 y Q8 filtran el JSON por contenido. En cambio, E6 sí usa BRIN con el
 plan normal: la tabla de minutos tiene casi 800 000 filas y llegan en orden de tiempo.
 
-## 6. Guion para la sustentación
+## 6. Demostración en vivo con DBeaver
 
 1. **Conexión:** abrir *Microrred · consulta* y mostrar que apunta a `127.0.0.1:55432` (el
    NodePort del clúster).
