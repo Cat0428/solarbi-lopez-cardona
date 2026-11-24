@@ -17,7 +17,7 @@ SET dispositivo_id = EXCLUDED.dispositivo_id,
 
 -- 2) Dimensión fecha: una fila por cada día presente en Silver
 INSERT INTO dwh.dim_fecha (fecha_key, fecha, anio, mes, nombre_mes, dia, dia_semana, nombre_dia)
-SELECT DISTINCT
+SELECT
        to_char(f, 'YYYYMMDD')::int,
        f,
        extract(year  FROM f)::smallint,
@@ -27,7 +27,7 @@ SELECT DISTINCT
        extract(day    FROM f)::smallint,
        extract(isodow FROM f)::smallint,
        (ARRAY['lunes','martes','miércoles','jueves','viernes','sábado','domingo'])[extract(isodow FROM f)::int]
-FROM (SELECT (ts AT TIME ZONE 'America/Bogota')::date AS f FROM silver.lectura_5min) d
+FROM (SELECT DISTINCT (ts AT TIME ZONE 'America/Bogota')::date AS f FROM silver.lectura_5min) dias
 ON CONFLICT (fecha_key) DO NOTHING;
 
 -- 3) Hecho diario: energía = Σ (potencia × 5/60 h) de las lecturas válidas
