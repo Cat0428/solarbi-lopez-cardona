@@ -48,6 +48,12 @@ RANGOS = {                                   # rango físico válido [min, max]
 CAMPOS_OBLIGATORIOS = ["ts", "dispositivo_id", "p_ac_kw", "irradiancia_wm2", "temp_modulo_c"]
 
 
+"""Abre la conexión a PostgreSQL con las credenciales del archivo .env.
+
+Si la conexión falla, termina el programa con un mensaje que explica
+las causas más frecuentes en Windows.
+"""
+
 def conectar():
     if load_dotenv:
         load_dotenv(os.path.join(RAIZ, ".env"))
@@ -126,6 +132,13 @@ def limpiar(bronze: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
 
 
 # --- Gold: carga en PostgreSQL ----------------------------------------------
+
+"""Carga las lecturas válidas en Silver y recalcula Gold.
+
+Pasos: crea el esquema (01_ddl.sql), hace UPSERT en silver.lectura_5min
+y ejecuta 03_carga_gold.sql. Devuelve los conteos totales de las tablas.
+"""
+
 def cargar(conn, validas: pd.DataFrame) -> dict:
     with conn.cursor() as cur:
         cur.execute(open(os.path.join(DIR_SQL, "01_ddl.sql"), encoding="utf-8").read())
@@ -154,6 +167,8 @@ def cargar(conn, validas: pd.DataFrame) -> dict:
         n_fact, energia = cur.fetchone()
     return {"filas_silver_total": n_silver, "filas_fact_total": n_fact, "energia_total_kwh": float(energia)}
 
+
+"""Guarda el linaje de la corrida en dwh.etl_ejecucion y devuelve su id."""
 
 def registrar(conn, inicio, reporte, totales):
     with conn.cursor() as cur:
