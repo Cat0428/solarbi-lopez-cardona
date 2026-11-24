@@ -127,6 +127,8 @@ schtasks /Create /TN "SolarBI ETL" /SC DAILY /ST 00:00 /TR "C:\ruta\solarbi\.ven
 | `UnicodeDecodeError` al conectar | Error de conexión de PostgreSQL con mensaje en español | Revisar puerto y contraseña (ver filas anteriores) |
 | Power BI: *Host desconocido* | No resuelve `localhost` | Usar `127.0.0.1:PUERTO` como servidor |
 | Power BI: *encrypted connection* | El contenedor no tiene SSL | Desmarcar **Use encrypted connection** |
+| `running scripts is disabled on this system` al activar `.venv\Scripts\activate` | PowerShell bloquea la ejecución de scripts | Ejecutar `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` y volver a activar el entorno |
+| `error during connect` o `Cannot connect to the Docker daemon` al ejecutar `docker compose up -d` | Docker Desktop no está abierto o aún está iniciando | Abrir Docker Desktop, esperar a que indique "Running" y repetir el comando |
 
 En esta práctica se usó Grafana en el puerto **3001** y PostgreSQL en el **55432**.
 
